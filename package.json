@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "ava",
-    "build": "ucompiler go compile-src"
+    "build": "ucompiler go compile-src",
+    "lint": "eslint src"
   },
   "repository": {
     "type": "git",
