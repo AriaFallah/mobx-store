@@ -1,0 +1,7 @@
+[ignore]
+.*/node_modules/json5
+.*/node_modules/sb-event-kit
+
+[options]
+esproposal.decorators=ignore
+suppress_comment= \\(.\\|\n\\)*\\$FlowIgnore

@@ -1,0 +1,27 @@
+{
+  "name": "mobx-store",
+  "version": "0.0.0",
+  "description": "An observable data store for usage with mobx",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AriaFallah/mobx-store.git"
+  },
+  "keywords": [],
+  "author": "Aria Fallah",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AriaFallah/mobx-store/issues"
+  },
+  "homepage": "https://github.com/AriaFallah/mobx-store#readme",
+  "devDependencies": {
+    "babel-preset-aria": "^1.2.0",
+    "eslint": "^2.8.0",
+    "eslint-config-aria": "^2.0.5",
+    "ucompiler": "^3.2.0",
+    "ucompiler-plugin-babel": "^3.1.1"
+  }
+}
