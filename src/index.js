@@ -29,7 +29,7 @@ function loWrap(array: Array<any>, key: string) {
 
   // We need to fix chain so it'll actually chain.
   // We just broke it above by calling .value() after it's called.
-  wrapped.chain = () => {
+  wrapped.chain = function() {
     // Alter the prototype of lodash ONLY for this chain
     // such that a change is reported when .value() is called at the end of the chain
     const lodash = _.runInContext()
@@ -38,7 +38,10 @@ function loWrap(array: Array<any>, key: string) {
   }
 
   // Don't make .value() jump through the hoops above. Just return the value.
-  wrapped.value = () => db.object[key].data
+  wrapped.value = function() {
+    return db.object[key].data
+  }
+  
   return wrapped
 }
 
