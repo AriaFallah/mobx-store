@@ -7,16 +7,18 @@ const lodash = _.runInContext()
 
 export default function db(key: string): Array<any> {
   if (!db.object[key]) {
-    db.object[key] = observable([])
-    db.object[key].__chksum = JSON.stringify([])
+    db.object[key] = {
+      data: observable([]),
+      __chksum: JSON.stringify([])
+    }
   }
-  const wrapped = loWrap(db.object[key].$mobx.values, key)
+  const wrapped = loWrap(db.object[key].data.$mobx.values, key)
   wrapped.chain = () => {
     lodash.prototype.value = lodash.flow(lodash.prototype.value, lodash.partialRight(reportChange, key))
-    const chain = lodash.chain(db.object[key].$mobx.values)
+    const chain = lodash.chain(db.object[key].data.$mobx.values)
     return chain
   }
-  wrapped.value = () => db.object[key]
+  wrapped.value = () => db.object[key].data
   return wrapped
 }
 db._ = _
@@ -36,10 +38,10 @@ function unwrap(value: any): any {
 }
 
 function reportChange(value: any, key: string) {
-  const chksum = JSON.stringify(value)
+  const chksum = JSON.stringify(db.object[key].data)
   if (chksum !== db.object[key].__chksum) {
     db.object[key].__chksum = chksum
-    db.object[key].$mobx.atom.reportChanged()
+    db.object[key].data.$mobx.atom.reportChanged()
   }
   return value
 }

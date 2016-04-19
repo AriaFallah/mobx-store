@@ -10,7 +10,7 @@ test('It works modifying the object manually', (t) => {
   let i = 0
   db('a').assign([1, 2, 3])
   autorun(() => i += noop(db('a').value()[0]))
-  db.object.a[0] = 2
+  db.object.a.data[0] = 2
   t.is(i, 2)
 })
 
@@ -30,10 +30,10 @@ test('It should not report a change when nothing changes', (t) => {
   t.not(i, 2)
 })
 
-test('It works when chaining', (t) => {
+test.only('It works when chaining', (t) => {
   let i = 0
-  db('d').assign([1, 2, 3])
+  db('d').assign([{ a: 1 }, { a: 2 }, { a: 3 }])
   autorun(() => i += noop(db('d').value()[0]))
-  db('d').chain().find((x) => x === 1).assign(4).value()
+  db('d').chain().find({ a: 1 }).assign({ a: 4 }).value()
   t.is(i, 2)
 })
