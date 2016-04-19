@@ -8,6 +8,7 @@ const lodash = _.runInContext()
 export default function db(key: string): Array<any> {
   if (!db.object[key]) {
     db.object[key] = observable([])
+    db.object[key].__chksum = JSON.stringify([])
   }
   const wrapped = loWrap(db.object[key].$mobx.values, key)
   wrapped.chain = () => {
@@ -35,6 +36,10 @@ function unwrap(value: any): any {
 }
 
 function reportChange(value: any, key: string) {
-  db.object[key].$mobx.atom.reportChanged()
+  const chksum = JSON.stringify(value)
+  if (chksum !== db.object[key].__chksum) {
+    db.object[key].__chksum = chksum
+    db.object[key].$mobx.atom.reportChanged()
+  }
   return value
 }
