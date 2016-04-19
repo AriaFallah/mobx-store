@@ -28,7 +28,7 @@
     "ucompiler": "^3.2.0",
     "ucompiler-plugin-babel": "^3.1.1"
   },
-  "dependencies": {
+  "peerDependencies": {
     "lodash": "^4.11.1",
     "mobx": "^2.1.3"
   }
