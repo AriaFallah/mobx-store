@@ -4,7 +4,7 @@
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
-    "test": ""
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -18,10 +18,15 @@
   },
   "homepage": "https://github.com/AriaFallah/mobx-store#readme",
   "devDependencies": {
+    "ava": "^0.14.0",
     "babel-preset-aria": "^1.2.0",
     "eslint": "^2.8.0",
-    "eslint-config-aria": "^2.0.5",
+    "eslint-config-aria": "^2.2.1",
     "ucompiler": "^3.2.0",
     "ucompiler-plugin-babel": "^3.1.1"
+  },
+  "dependencies": {
+    "lodash": "^4.11.1",
+    "mobx": "^2.1.3"
   }
 }
