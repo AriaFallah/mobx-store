@@ -4,7 +4,8 @@
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "build": "ucompiler go compile-src"
   },
   "repository": {
     "type": "git",
