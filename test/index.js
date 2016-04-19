@@ -8,32 +8,32 @@ function noop() {
 
 test('It works modifying the object manually', (t) => {
   let i = 0
-  db('x').assign([1, 2, 3])
-  autorun(() => i += noop(db('x').value()[0]))
-  db.object.x[0] = 2
+  db('a').assign([1, 2, 3])
+  autorun(() => i += noop(db('a').value()[0]))
+  db.object.a[0] = 2
   t.is(i, 2)
 })
 
 test('It works when calling a single method', (t) => {
   let i = 0
-  db('x').assign([1, 2, 3])
-  autorun(() => i += noop(db('x').value()[0]))
-  db('x').assign([5, 2, 3])
+  db('b').assign([1, 2, 3])
+  autorun(() => i += noop(db('b').value()[0]))
+  db('b').assign([5, 2, 3])
   t.is(i, 2)
 })
 
 test('It should not report a change when nothing changes', (t) => {
   let i = 0
-  db('x').assign([1, 2, 3])
-  autorun(() => i += noop(db('x').value()[0]))
-  db('x').find((x) => x === 1)
+  db('c').assign([1, 2, 3])
+  autorun(() => i += noop(db('c').value()[0]))
+  db('c').find((x) => x === 1)
   t.not(i, 2)
 })
 
 test('It works when chaining', (t) => {
   let i = 0
-  db('x').assign([1, 2, 3])
-  autorun(() => i += noop(db('x').value()[0]))
-  db('x').chain().find((x) => x === 1).assign(4).value()
+  db('d').assign([1, 2, 3])
+  autorun(() => i += noop(db('d').value()[0]))
+  db('d').chain().find((x) => x === 1).assign(4).value()
   t.is(i, 2)
 })
