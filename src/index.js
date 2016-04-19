@@ -41,7 +41,7 @@ function loWrap(array: Array<any>, key: string) {
   wrapped.value = function() {
     return db.object[key].data
   }
-  
+
   return wrapped
 }
 
@@ -57,6 +57,8 @@ function reportChange(value: any, key: string) {
   if (chksum !== db.object[key].__chksum) {
     db.object[key].__chksum = chksum
     db.object[key].data.$mobx.atom.reportChanged()
+  } else {
+    db.object[key].data.$mobx.atom.reportObserved()
   }
   return value
 }
