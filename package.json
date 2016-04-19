@@ -22,6 +22,7 @@
   "devDependencies": {
     "ava": "^0.14.0",
     "babel-preset-aria": "^1.2.0",
+    "babel-runtime": "^6.6.1",
     "eslint": "^2.8.0",
     "eslint-config-aria": "^2.2.1",
     "ucompiler": "^3.2.0",
