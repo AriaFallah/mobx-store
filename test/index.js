@@ -30,7 +30,7 @@ test('It should not report a change when nothing changes', (t) => {
   t.not(i, 2)
 })
 
-test.only('It works when chaining', (t) => {
+test('It works when chaining', (t) => {
   let i = 0
   db('d').assign([{ a: 1 }, { a: 2 }, { a: 3 }])
   autorun(() => i += noop(db('d').value()[0]))
