@@ -4,8 +4,8 @@
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
-    "test": "ava",
-    "build": "ucompiler go compile-src",
+    "test": "nyc ava -v",
+    "build": "gulp",
     "lint": "eslint src"
   },
   "repository": {
@@ -22,14 +22,26 @@
   "devDependencies": {
     "ava": "^0.14.0",
     "babel-preset-aria": "^1.2.0",
-    "babel-runtime": "^6.6.1",
+    "babel-register": "^6.7.2",
+    "coveralls": "^2.11.9",
     "eslint": "^2.8.0",
     "eslint-config-aria": "^2.2.1",
-    "ucompiler": "^3.2.0",
-    "ucompiler-plugin-babel": "^3.1.1"
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "lodash": "^4.11.1",
+    "mobx": "^2.1.4",
+    "nyc": "^6.4.0"
   },
   "peerDependencies": {
     "lodash": "^4.11.1",
     "mobx": "^2.1.3"
+  },
+  "ava": {
+    "babel": {
+      "babelrc": true
+    },
+    "require": [
+      "babel-register"
+    ]
   }
 }

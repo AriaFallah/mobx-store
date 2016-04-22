@@ -4,6 +4,8 @@ test:
   override:
     - npm test
     - npm run lint
+  post:
+    - './node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls'
 
 machine:
   node:

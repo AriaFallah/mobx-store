@@ -1,6 +1,6 @@
 import test from 'ava'
-import store from '../lib'
-import storage from '../lib/localstorage'
+import store from '../src'
+import storage from '../src/localstorage'
 import { autorun } from 'mobx'
 
 global.localStorage = {
