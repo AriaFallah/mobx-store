@@ -172,9 +172,9 @@ import { observer } from 'mobx-react'
 const store = mobxstore()
 store('objects').assign([{ name: 'test' }])
 
-const Objects = observer(function({ cards }) {
+const Objects = observer(function() {
   function addCard() {
-    cards.push({ name: 'test' })
+    store('objects').push({ name: 'test' })
   }
   return (
     <div>
