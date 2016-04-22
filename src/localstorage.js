@@ -1,19 +1,15 @@
 // @flow
 
-import _ from 'lodash'
-import { map } from 'mobx'
+import { forOwn } from 'lodash'
+import { map as obsMap } from 'mobx'
 import { createData } from './util'
 
 function deserialize(objString: string): Object {
-  const db = map({})
+  const db = obsMap({})
   const obj = JSON.parse(objString)
 
   // Read the object, creating data in the db for each key
-  _.forOwn(
-    obj,
-    (value, key) => db.set(key, createData(db, key, value.__data))
-  )
-
+  forOwn(obj, (value, key) => db.set(key, createData(db, key, value.__data)))
   return db
 }
 
@@ -23,7 +19,7 @@ function read(source: string) {
     return deserialize(data)
   }
   localStorage.setItem(source, '{}')
-  return map({})
+  return obsMap({})
 }
 
 function write(dest: string, obj: Object) {
