@@ -11,6 +11,7 @@ A simple observable data store for mobx with time traveling state, a lodash API,
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
   * [Reading from and writing to an external store](#reading-from-and-writing-to-an-external-store)
   * [Accessing state history](#accessing-state-history)
+  * [Using with react](#using-with-react)
 * [Credit](#credit)
 
 ## Installation
@@ -44,7 +45,8 @@ store('numbers') // <---- array at numbers. Ready to read or write to it.
 #### Reading from and writing to the store
 
 mobx-store has a simple [lodash](https://github.com/lodash/lodash) powered API.
-Reading and writing is as simple as calling lodash methods on the store. To write, make sure the lodash method you're calling actually mutates the value you're giving it instead of returning a new one.
+Reading and writing is as simple as calling lodash methods on the store. To write, make sure the
+lodash method you're calling actually mutates the value you're giving it instead of returning a new one.
 
 ```js
 import mobxstore from 'mobx-store'
@@ -152,6 +154,43 @@ store.states
   { time: [4, 2, 3], space: [1, 2, 3] }
 ]
 */
+```
+
+#### Using with react
+
+One of the best things about the store is that you can use it with `mobx-react` like any other
+observable.
+
+For example to display some lists of objects, that automatically updates the view when you add
+another one.
+
+```js
+import React from 'react'
+import mobxstore from 'mobx-store'
+import { observer } from 'mobx-react'
+
+const store = mobxstore()
+store('objects').assign([{ name: 'test' }])
+
+const Objects = observer(function({ cards }) {
+  function addCard() {
+    cards.push({ name: 'test' })
+  }
+  return (
+    <div>
+      <button onClick={addCard}>Add New Card</button>
+      <div>
+        {store('objects').map((o, n) =>
+          <div key={n}>
+            {o.name}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})
+
+export default Objects
 ```
 
 ## Credit
