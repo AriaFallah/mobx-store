@@ -1,13 +1,19 @@
 // @flow
 
 import _ from 'lodash'
-import { asReference } from 'mobx'
+import { autorun, asReference } from 'mobx'
 
 export function createData(obj: Object, key: string, value: Array<any> = []) {
   return {
     obs: value, // The observable array
     __data: asReference(loWrap(obj, key, value)) // The underlying array
   }
+}
+
+export function init(source: string, read: Function, write: Function): Object {
+  const obj = read(source)
+  autorun(() => write(source, obj.toJs()))
+  return obj
 }
 
 // Wrap a collection such that you can call lodash methods on it implicitly.
@@ -38,7 +44,7 @@ function loWrap(obj: Object, key: string, value: Array<any>) {
         updateObs
       )
 
-    // Return a chain with an altered value prototype
+    // Return a chain with the altered value prototype
     return lodash.chain(value)
   }
 

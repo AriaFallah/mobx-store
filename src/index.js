@@ -1,16 +1,14 @@
 // @flow
 
 import { map } from 'mobx'
-import { createData } from './util'
+import { createData, init } from './util'
 
 function createDb(source: string, options: Object = {}): Function {
   let dbObject
   const storage = options && options.storage
 
   if (storage) {
-    db.read = storage.read
-    db.write = storage.write
-    dbObject = init(db.read, db.write)
+    dbObject = init(source, storage.read, storage.write)
   } else {
     dbObject = map({})
   }
@@ -19,12 +17,6 @@ function createDb(source: string, options: Object = {}): Function {
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
     return dbObject.get(key).__data
-  }
-
-  function init(read: Function, write: Function): Object {
-    // noop for now
-    console.log(read, write)
-    return {}
   }
 
   // Return the database object

@@ -14,7 +14,7 @@ function deserialize(objString: string): Object {
     (value, key) => db.set(key, createData(db, key, value.__data))
   )
 
-  return map
+  return db
 }
 
 function read(source: string) {
@@ -23,7 +23,7 @@ function read(source: string) {
     return deserialize(data)
   }
   localStorage.setItem(source, '{}')
-  return {}
+  return map({})
 }
 
 function write(dest: string, obj: Object) {
