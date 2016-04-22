@@ -1,6 +1,6 @@
 import test from 'ava'
 import store from '../src'
-import storage from '../src/localstorage'
+import storage from '../localstorage'
 import { autorun } from 'mobx'
 import _ from 'lodash'
 
