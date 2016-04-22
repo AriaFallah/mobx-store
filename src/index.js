@@ -24,11 +24,15 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     states.push(serializeDb(dbObject))
   })
 
-  function db(key: string, funcs?: Array<Function>): Array<any> {
+  function db(key: string, funcs?: Array<Function> | Function): Array<any> {
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
     if (funcs) {
-      return flow(...funcs, partial(update, dbObject, key))(dbObject.get(key).__data)
+      const updateObs = partial(update, dbObject, key)
+      if (Array.isArray(funcs)) {
+        return flow(...funcs, updateObs)(dbObject.get(key).__data)
+      }
+      return flow(funcs, updateObs)(dbObject.get(key).__data)
     }
     return dbObject.get(key).obs.slice()
   }
