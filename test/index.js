@@ -2,6 +2,7 @@ import test from 'ava'
 import store from '../src'
 import storage from '../src/localstorage'
 import { autorun } from 'mobx'
+import _ from 'lodash'
 
 global.localStorage = {
   store: {
@@ -66,6 +67,38 @@ test('Store time travel works', function(t) {
     { time: [4, 2, 3], space: [1, 3, 3] },
     { time: [4, 2, 3], space: [1, 2, 3] }
   ])
+})
+
+test('Examples in docs work', function(t) {
+  const docs = store()
+  t.deepEqual(docs('numbers').value(), [])
+  docs('numbers').assign([1, 2, 3])
+  t.deepEqual(docs('numbers').filter((v) => v > 1), [2, 3])
+
+  const users = [{
+    id: 1,
+    name: 'a'
+  }, {
+    id: 2,
+    name: 'b'
+  }, {
+    id: 3,
+    name: 'c'
+  }, {
+    id: 4,
+    name: 'd'
+  }, {
+    id: 5,
+    name: 'e'
+  }]
+
+  docs('users').assign(users)
+  const top3 = docs('users').chain().sortBy('id').take(3)
+  t.deepEqual(top3.map('name').value(), ['a', 'b', 'c'])
+  t.deepEqual(top3.map((v) => _.toUpper(v.name)).value(), ['A', 'B', 'C'])
+  t.deepEqual(top3.map('name').value(), ['a', 'b', 'c'])
+  top3.forEach((v) => v.name = _.toUpper(v.name)).value()
+  t.deepEqual(top3.map('name').value(), ['A', 'B', 'C'])
 })
 
 function noop() {
