@@ -1,8 +1,8 @@
 # mobx-store
 
-[![Circle CI](https://circleci.com/gh/AriaFallah/mobx-store.svg?style=svg)](https://circleci.com/gh/AriaFallah/mobx-store)
-[![npm](https://img.shields.io/npm/v/mobx-store.svg?maxAge=2592000?style=flat-square)]()
-[![Coverage Status](https://coveralls.io/repos/github/AriaFallah/mobx-store/badge.svg?branch=coverage)](https://coveralls.io/github/AriaFallah/mobx-store?branch=coverage)
+[![CircleCI](https://img.shields.io/circleci/project/AriaFallah/mobx-store.svg?style=flat-square)]()
+[![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)]()
+[![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)]()
 
 An observable data store for usage with mobx.
 
