@@ -51,6 +51,23 @@ test('Store works when chaining', function(t) {
   t.is(i, 2)
 })
 
+test('Store time travel works', function(t) {
+  const isolated = store()
+  isolated('time').assign([1, 2, 3])
+  isolated('time').assign([4, 2, 3])
+  isolated('space').assign([1, 3, 3])
+  isolated('space').assign([1, 2, 3])
+  t.deepEqual(isolated.states, [
+    {},
+    { time: [] },
+    { time: [1, 2, 3] },
+    { time: [4, 2, 3] },
+    { time: [4, 2, 3], space: [] },
+    { time: [4, 2, 3], space: [1, 3, 3] },
+    { time: [4, 2, 3], space: [1, 2, 3] }
+  ])
+})
+
 function noop() {
   return 1
 }
