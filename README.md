@@ -14,6 +14,10 @@ A simple observable data store for mobx with time traveling state, a lodash API,
   * [Using with react](#using-with-react)
 * [Credit](#credit)
 
+## Disclaimer
+
+mobx-store is currently not stable, and the API is very prone to change. Using it in a project right now is not recommended.
+
 ## Installation
 
     npm install --save mobx-store
