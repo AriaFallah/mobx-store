@@ -2,6 +2,12 @@ import test from 'ava'
 import store from '../lib'
 import { autorun } from 'mobx'
 
+global.localStorage = {
+  store: [],
+  setItem: (key, value) => localStorage.store[key] = value,
+  getItem: (key) => localStorage.store[key]
+}
+
 const db = store()
 
 test('It works when calling a single method', (t) => {
