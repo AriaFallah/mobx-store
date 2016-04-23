@@ -28,7 +28,7 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, [])
     if (funcs) {
-      return chain(addKey(dbObject.get(key).slice(), key), funcs)
+      return chain(addKey(dbObject.get(key), key), funcs)
     }
     return addKey(dbObject.get(key), key)
   }
@@ -36,7 +36,7 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
   db.chain = chain
 
   function chain(data: Object, funcs?: Array<Function> | Function): Object {
-    return flow(...concat([], funcs))(data)
+    return flow(...concat([], funcs))(data.slice())
   }
 
   // Return the database object
