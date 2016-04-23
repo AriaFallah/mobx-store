@@ -28,12 +28,16 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
     if (funcs) {
-      const updateObs = partial(update, dbObject, key)
-      return flow(...concat([], funcs), updateObs)(dbObject.get(key).__data)
+      return chain(key, dbObject.get(key).__data, funcs)
     }
     return dbObject.get(key).obs.slice()
   }
   db.states = states
+  db.chain = chain
+
+  function chain(key: string, data: Array<any>, funcs?: Array<Function> | Function) {
+    return flow(...concat([], funcs), partial(update, dbObject, key))(data)
+  }
 
   // Return the database object
   return db
