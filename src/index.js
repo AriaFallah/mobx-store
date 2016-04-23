@@ -2,7 +2,6 @@
 
 import { concat, fromPairs, map, flow } from 'lodash'
 import { autorun, map as obsMap, createTransformer, observable } from 'mobx'
-import { init } from './util'
 import type { StoreOptions } from './types'
 
 const serializeDb = createTransformer(function(db) {
@@ -15,7 +14,7 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
   const storage = options && options.storage
 
   if (storage) {
-    dbObject = init(source, storage.read, storage.write)
+    dbObject = init(storage.read, storage.write)
   } else {
     dbObject = obsMap({})
   }
@@ -37,6 +36,12 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
 
   function chain(data: Object, funcs?: Array<Function> | Function): Object {
     return flow(...concat([], funcs))(data.slice())
+  }
+
+  function init(read: Function, write: Function): Object {
+    const obj = read(source)
+    autorun(() => write(source, obj.toJs()))
+    return obj
   }
 
   // Return the database object
