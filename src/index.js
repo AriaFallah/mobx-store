@@ -1,6 +1,6 @@
 // @flow
 
-import { concat, fromPairs, map, flow } from 'lodash'
+import { concat, fromPairs, map, flow, partial } from 'lodash'
 import { autorun, map as obsMap, createTransformer, observable } from 'mobx'
 
 const serializeDb = createTransformer(function(db) {
@@ -25,12 +25,12 @@ export default function createDb(intitialState: Object = {}): Function {
   db.register = register
   db.states = states
 
-  function chain(data: Object, funcs?: Array<Function> | Function): Object {
+  function chain(data: Object, funcs: Array<Function> | Function): Object {
     return flow(...concat([], funcs))(data.slice())
   }
 
-  function register(funcs?: Array<Function> | Function) {
-    return map(concat([], funcs), autorun)
+  function register(...funcs: Array<Function>) {
+    return map(map(funcs, (args) => partial(...args)), autorun)
   }
 
   // Return the database object
