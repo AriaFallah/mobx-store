@@ -1,6 +1,6 @@
 // @flow
 
-import { assign, fromPairs, map, flow, partial, partialRight } from 'lodash'
+import { assign, concat, fromPairs, map, flow, partial, partialRight } from 'lodash'
 import { autorun, map as obsMap, createTransformer } from 'mobx'
 import { createData, init, update } from './util'
 import type { StoreOptions } from './types'
@@ -29,10 +29,7 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
     if (funcs) {
       const updateObs = partial(update, dbObject, key)
-      if (Array.isArray(funcs)) {
-        return flow(...funcs, updateObs)(dbObject.get(key).__data)
-      }
-      return flow(funcs, updateObs)(dbObject.get(key).__data)
+      return flow(...concat([], funcs), updateObs)(dbObject.get(key).__data)
     }
     return dbObject.get(key).obs.slice()
   }
