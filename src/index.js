@@ -2,7 +2,7 @@
 
 import { concat, fromPairs, map, flow } from 'lodash'
 import { autorun, map as obsMap, createTransformer, observable } from 'mobx'
-import { addKey, init } from './util'
+import { init } from './util'
 import type { StoreOptions } from './types'
 
 const serializeDb = createTransformer(function(db) {
@@ -28,9 +28,9 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, [])
     if (funcs) {
-      return chain(addKey(dbObject.get(key), key), funcs)
+      return chain(dbObject.get(key), funcs)
     }
-    return addKey(dbObject.get(key), key)
+    return dbObject.get(key)
   }
   db.states = states
   db.chain = chain
