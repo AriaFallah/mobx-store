@@ -1,7 +1,7 @@
 // @flow
 
 import { concat, fromPairs, map, flow } from 'lodash'
-import { autorun, map as obsMap, createTransformer } from 'mobx'
+import { autorun, map as obsMap, createTransformer, observable } from 'mobx'
 import { addKey, init } from './util'
 import type { StoreOptions } from './types'
 
@@ -11,7 +11,7 @@ const serializeDb = createTransformer(function(db) {
 
 export default function createDb(source: string, options: StoreOptions = {}): Function {
   let dbObject
-  const states = []
+  const states = observable([])
   const storage = options && options.storage
 
   if (storage) {
