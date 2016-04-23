@@ -15,10 +15,6 @@ support for reading and writing to an external store.
   * [Using with react](#using-with-react)
 * [Credit](#credit)
 
-## Disclaimer
-
-mobx-store is currently not stable, and the API is very prone to change. Using it in a project right now is not recommended.
-
 ## Installation
 
 ```
