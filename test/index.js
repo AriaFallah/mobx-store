@@ -1,19 +1,14 @@
 import test from 'ava'
-import store, { assign } from '../src'
+import mobxstore from '../src'
 import storage from '../src/localstorage'
 import { autorun } from 'mobx'
 import { map, find, filter, toUpper, sortBy, take, forEach } from 'lodash/fp'
 
 global.localStorage = {
-  store: {
-    db: '{"a":{"obs":[1,2,3],"__data":[1,2,3]}}'
-  },
+  store: { db: '{"a": [1, 2, 3]}' },
   setItem: (key, value) => localStorage.store[key] = value,
   getItem: (key) => localStorage.store[key]
 }
-
-const db = store()
-const local = store('db', { storage })
 
 test('Local storage works', function(t) {
   storage.read('x')
@@ -23,58 +18,67 @@ test('Local storage works', function(t) {
 })
 
 test('Store reads from and writes to local storage', function(t) {
-  t.deepEqual(local('a'), [1, 2, 3])
-  local('a', assign([4, 5, 6]))
-  t.deepEqual(JSON.parse(global.localStorage.store.db).a.__data, [4, 5, 6])
+  const store = mobxstore('db', { storage })
+
+  t.deepEqual(store('a').slice(), [1, 2, 3])
+  store('a').replace([4, 5, 6])
+  t.deepEqual(JSON.parse(global.localStorage.store.db).a, [4, 5, 6])
 })
 
 test('Store works when calling a single method', function(t) {
   let i = 0
-  t.deepEqual(db('a', assign([1, 2, 3])), [1, 2, 3])
-  autorun(() => i += noop(db('a')[0]))
-  t.deepEqual(db('a', assign([4, 5, 6])), [4, 5, 6])
+  const store = mobxstore()
+
+  store('test').replace([1, 2, 3])
+  autorun(() => i += noop(store('test')[0]))
+  store('test').replace([4, 5, 6])
   t.is(i, 2)
 })
 
 test('Store should not report a change when nothing changes', function(t) {
   let i = 0
-  t.deepEqual(db('b', assign([{ a: 1 }, { b: 2 }, { c: 3 }])), [{ a: 1 }, { b: 2 }, { c: 3 }])
-  autorun(() => i += noop(db('b')[0]))
-  t.deepEqual(db('b', find({ a: 1 })), { a: 1 })
+  const store = mobxstore()
+
+  store('test').replace([{ a: 1 }, { b: 2 }, { c: 3 }])
+  autorun(() => i += noop(store('test')[0]))
+  store('test', find({ a: 1 }))
   t.not(i, 2)
 })
 
 test('Store works when chaining', function(t) {
   let i = 0
-  t.deepEqual(db('c', assign([{ a: 1 }, { b: 2 }, { c: 3 }])), [{ a: 1 }, { b: 2 }, { c: 3 }])
-  autorun(() => i += noop(db('c')[0]))
-  db('c', [find({ a: 1 }), assign({ a: 'wow' })])
-  t.deepEqual(db('c')[0], { a: 'wow' })
+  const store = mobxstore()
+
+  store('test').replace([{ a: 1 }, { b: 2 }, { c: 3 }])
+  autorun(() => i += noop(store('test')[0].a))
+  store('test', find({ a: 1 })).a = 'wow'
   t.is(i, 2)
 })
 
 test('Store time travel works', function(t) {
-  const isolated = store()
-  isolated('time', assign([1, 2, 3]))
-  isolated('time', assign([4, 2, 3]))
-  isolated('space', assign([1, 3, 3]))
-  isolated('space', assign([1, 2, 3]))
-  t.deepEqual(isolated.states, [
+  const store = mobxstore()
+
+  store('time').replace([1, 2, 3])
+  store('time').replace([4, 2, 3])
+  store('travel').replace([1, 3, 3])
+  store('travel').replace([1, 2, 3])
+  t.deepEqual(store.states, [
     {},
     { time: [] },
     { time: [1, 2, 3] },
     { time: [4, 2, 3] },
-    { time: [4, 2, 3], space: [] },
-    { time: [4, 2, 3], space: [1, 3, 3] },
-    { time: [4, 2, 3], space: [1, 2, 3] }
+    { time: [4, 2, 3], travel: [] },
+    { time: [4, 2, 3], travel: [1, 3, 3] },
+    { time: [4, 2, 3], travel: [1, 2, 3] }
   ])
 })
 
-test('Examples in docs work', function(t) {
-  const docs = store()
-  t.deepEqual(docs('numbers'), [])
-  docs('numbers', assign([1, 2, 3]))
-  t.deepEqual(docs('numbers', filter((v) => v > 1)), [2, 3])
+test('Examples in store work', function(t) {
+  const store = mobxstore()
+
+  store('numbers')
+  store('numbers').replace([1, 2, 3])
+  t.deepEqual(store('numbers', filter((v) => v > 1)), [2, 3])
 
   const users = [{
     id: 1,
@@ -93,13 +97,13 @@ test('Examples in docs work', function(t) {
     name: 'e'
   }]
 
-  docs('users', assign(users))
-  const top3  = docs('users', [sortBy('id'), take(3)])
-  t.deepEqual(docs.chain(top3, map('name')), ['a', 'b', 'c'])
-  t.deepEqual(docs.chain(top3, map((v) => toUpper(v.name))), ['A', 'B', 'C'])
-  t.deepEqual(docs.chain(top3, map('name')), ['a', 'b', 'c'])
-  docs.chain(top3, forEach((v) => v.name = toUpper(v.name)))
-  t.deepEqual(docs.chain(top3, map('name')), ['A', 'B', 'C'])
+  store('users').replace(users)
+  const top3 = store('users', [sortBy('id'), take(3)])
+  t.deepEqual(store.chain(top3, map('name')), ['a', 'b', 'c'])
+  t.deepEqual(store.chain(top3, map((v) => toUpper(v.name))), ['A', 'B', 'C'])
+  t.deepEqual(store.chain(top3, map('name')), ['a', 'b', 'c'])
+  store.chain(top3, forEach((v) => v.name = toUpper(v.name)))
+  t.deepEqual(store.chain(top3, map('name')), ['A', 'B', 'C'])
 })
 
 function noop() {
