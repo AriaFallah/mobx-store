@@ -5,15 +5,30 @@
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
 A simple observable data store for mobx with time traveling state, a lodash API, and plugin
-support for reading and writing to an external store.
+support for reading from and writing to an external store.
 
 * [Installation](#installation)
+* [Why](#why)
 * [Usage](#usage)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
   * [Reading from and writing to an external store](#reading-from-and-writing-to-an-external-store)
   * [Accessing state history](#accessing-state-history)
   * [Using with react](#using-with-react)
 * [Credit](#credit)
+
+## Why
+
+MobX provides a way to make your view a function of your data, but leaves it up to you to decide
+where you put your data. At first I ended up making multiple stores for my different resources
+such as posts and comments, but each of those stores had something in common. I was writing the same
+code over and over for querying the data in my stores. Moreover, it was difficult to coordinate
+combining the data of the multiple stores.
+
+The idea behind MobX-Store is simple. It's a place to keep all your data organized that provides a
+nice way to declaratively query it. Moreover, because it's observable, and because it has a plugin
+API for external store, it lets you schedule your own side effects for when your data changes. Finally,
+features such as time traveling state can make your code easier to debug especially when MobX adds in
+the new action decorators that'll let you know what triggered the state changes.
 
 ## Installation
 
