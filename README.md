@@ -89,7 +89,8 @@ mobx-store has a simple [lodash](https://github.com/lodash/lodash) powered API.
 * Reading from the store is as simple as passing lodash methods to the store function. In order to
 pass methods to the store without actually executing them you can import from `lodash/fp`.
 
-* Writing to the store is done by calling the regular array methods on the store object.
+* Writing to the store is done by calling the regular array methods as well the methods MobX exposes
+such as `replace` on the store object.
 
 
 ```js
