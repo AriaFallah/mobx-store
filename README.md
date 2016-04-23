@@ -4,31 +4,63 @@
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
-A simple observable data store for mobx with time traveling state, a lodash API, and plugin
-support for reading from and writing to an external store.
+A observable data store with time traveling state, declarative querying, and reactions to state
+changes in 30 lines of code.
 
-* [Installation](#installation)
 * [Why](#why)
-* [Usage](#usage)
+* [Installation](#installation)
+* [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
-  * [Reading from and writing to an external store](#reading-from-and-writing-to-an-external-store)
+  * [Registering reactions to state change](#registering-reactions-to-state-change)
   * [Accessing state history](#accessing-state-history)
   * [Using with react](#using-with-react)
 * [Credit](#credit)
 
 ## Why
 
-MobX provides a way to make your view a function of your data, but leaves it up to you to decide
-where you put your data. At first I ended up making multiple stores for my different resources
-such as posts and comments, but each of those stores had something in common. I was writing the same
-code over and over for querying the data in my stores. Moreover, it was difficult to coordinate
-combining the data of the multiple stores.
+#### Query your data like it's SQL
+```js
+import mobxstore from 'mobx-store'
+import { filter, map, pick, sortBy, take } from 'lodash/fp'
 
-The idea behind MobX-Store is simple. It's a place to keep all your data organized that provides a
-nice way to declaratively query it. Moreover, because it's observable, and because it has a plugin
-API for external store, it lets you schedule your own side effects for when your data changes. Finally,
-features such as time traveling state can make your code easier to debug especially when MobX adds in
-the new action decorators that'll let you know what triggered the state changes.
+// Create empty store
+const store = mobxstore()
+
+// SELECT name, age FROM users WHERE age > 18 ORDER BY age LIMIT 1
+store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('age'), take(1)])
+```
+
+#### React to state changes
+```js
+import mobxstore from 'mobx-store'
+
+function logStore(storeObject) {
+  // toJs converts the store object to plain js
+  console.log(storeObject.toJs())
+}
+
+// Create empty store
+const store = mobxstore()
+
+// Register logStore so that it happens every time the store mutates
+store.register([logStore, store.object])
+
+// logStore is invoked on the push because the store mutated
+store('numbers').push(1)
+/*
+  {
+    numbers: [1]
+  }
+*/
+
+// logStore is invoked on the push because the store mutated
+store('numbers').push(1)
+/*
+  {
+    numbers: [1, 2]
+  }
+*/
+```
 
 ## Installation
 
@@ -58,7 +90,7 @@ this way you can do modular imports, and reduce the size of your bundles on the 
 import { map, take, sortBy } from 'lodash/fp'
 ```
 
-## Usage
+## Tutorial
 
 The store is structured as an object that holds an array for each key. For example, something like
 
@@ -73,13 +105,20 @@ To create a store all you need to do is
 
 ```js
 import mobxstore from 'mobx-store'
+
+// Create empty store
 const store = mobxstore()
+
+// Create store with initial state
+const store = mobxstore({
+  users: [{ name: 'joe', id: 1 }]
+})
 ```
 
-and to get access to specific key such as numbers you would just call
+and to get access to specific key such as users you would just call
 
 ```js
-store('numbers') // <---- array at numbers. Ready to read or write to it.
+store('users') // <---- array at numbers. Ready to read or write to it.
 ```
 
 #### Reading from and writing to the store
@@ -101,81 +140,52 @@ const store = mobxstore()
 
 store('numbers') // read current value of store -- []
 store('numbers').replace([1, 2, 3]) // write [1, 2, 3] to store
-store('numbers', filter((v) => v > 1)) // read [2, 3] from store
+store('numbers').push(4) // push 4 into the store
+store('numbers', filter((v) => v > 1)) // read [2, 3, 4] from store
 ```
 
 You can also chain methods to create more complex queries by passing an array of functions to the
 store.
 
 ```js
-import { forEach, map, sortBy, take, toUpper } from 'lodash/fp'
+import { filter, map, sortBy, take, toUpper } from 'lodash/fp'
 import mobxstore from 'mobx-store'
 
 const store = mobxstore()
 
-const users = [{
-  id: 1,
-  name: 'a'
-}, {
-  id: 2,
-  name: 'b'
-}, {
-  id: 3,
-  name: 'c'
-}, {
-  id: 4,
-  name: 'd'
-}, {
-  id: 5,
-  name: 'e'
-}]
-
-// put users into the store
-store('users').replace(users)
-
-// Get the top 3 users by id
-const top3 = store('users', [sortBy('id'), take(3)])
+// Sort users by id and return an array of those with ids > 20
+const result = store('users', [sortBy('id'), filter((x) => x.id > 20)])
 ```
 
 If you save the result of one of your queries to a variable,
 you can continue working with the variable by using the `chain` API
 
 ```js
-// Get the names with the top 3 ids
-store.chain(top3, map('name')) // ['a', 'b', 'c']
+// Take the top 3, and return an array of their names
+store.chain(result, [take(3), map('name')])
 
-// Get the names of the top 3 ids capitalized
-store.chain(top3, map((v) => toUpper(v.name)))
-
-// Map doesn't mutate so value is the same
-store.chain(top3, map('name')) // ['a', 'b', 'c']
-
-// Mutate the names of the top 3 ids so they're capitalized
-store.chain(top3, forEach((v) => v.name = toUpper(v.name)))
-
-// Get the mutated names
-store.chain(top3, map('name')) // ['A', 'B', 'C']
+// Filter again to get those with ids less than 100, take the top 3, and return an array of their names capitalized
+store.chain(result, [filter((x) x.id < 100), take(3), map((v) => toUpper(v.name))])
 ```
 
-#### Reading from and writing to an external store
+#### Registering reactions to state change
 
-Reading and writing to an external store is done completely automatically. All you need to do is
-specify it as a storage option. For example mobx-store comes with an adapter for reading and
-writing to localstorage.
+Reacting to state changes is done through the `register` API. You pass one to many arrays to the function. The first element of the array is your function, and the following elements are the arguments of your array.
+
+For example mobx-store comes with an adapter for reading and writing to localstorage.
 
 ```js
 import mobxstore from 'mobx-store'
-import storage from 'mobx-store/localstorage'
+import localstorage from 'mobx-store/localstorage'
 
-// Name your external store, and pass it in
-const store = mobxstore('local', { storage })
+// Create store initialized with value of localstorage at "info"
+const store = mobxstore(localstorage.read('info'))
+
+// Register a reaction to changes to the state of the store
+store.register([localstorage.write, 'info', store.object])
 ```
 
-and you're done. Every change you make to this instance of mobx-store will persist to localstorage,
-and the next time you open your app, it'll read the data from localstorage back into the store.
-
-To roll out your own external store all you need to do is expose a read and write function on an
-object, and pass it to the store as a storage option.
+and you're done. Every change you make to this instance of mobx-store will persist to localstorage.
 
 #### Accessing state history
 
@@ -212,8 +222,7 @@ store.states
 
 #### Using with react
 
-One of the best things about the store is that you can use it with `mobx-react` like any other
-observable.
+One of the best things about the store is that you can use it with `mobx-react` because it's based upon mobx.
 
 For example to display some lists of objects, that automatically updates the view when you add
 another one.
@@ -224,7 +233,6 @@ import mobxstore from 'mobx-store'
 import { observer } from 'mobx-react'
 
 const store = mobxstore()
-store('objects').replace([{ name: 'test' }])
 
 const Objects = observer(function() {
   function addCard() {
@@ -250,5 +258,4 @@ export default Objects
 ## Credit
 
 * Thanks to @mweststrate for writing https://github.com/mobxjs/mobx
-* A lot of the core is a reimplementation of https://github.com/typicode/lowdb to work with mobx.
-You should check it out if you ever want a data store that doesn't use mobx.
+* The declarative querying is an improvement upon the cool ideas here https://github.com/typicode/lowdb
