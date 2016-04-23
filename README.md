@@ -4,7 +4,8 @@
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
-A simple observable data store for mobx with time traveling state, a lodash API, and plugin support for reading and writing to an external store.
+A simple observable data store for mobx with time traveling state, a lodash API, and plugin
+support for reading and writing to an external store.
 
 * [Installation](#installation)
 * [Usage](#usage)
@@ -20,7 +21,31 @@ mobx-store is currently not stable, and the API is very prone to change. Using i
 
 ## Installation
 
-    npm install --save mobx-store
+```
+npm install --save mobx-store lodash
+```
+
+In order to prevent you from importing all of lodash into your frontend app, it's
+recommended that you install [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash)
+
+```
+npm install --save-dev babel-plugin-lodash
+```
+
+and add it to your `.babelrc`
+
+```js
+{
+  "presets": // es2015, stage-whatever
+  "plugins": [/* other plugins */, "lodash"]
+}
+```
+
+this way you can do modular imports, and reduce the size of your bundles on the frontend
+
+```js
+import { map, take, sortBy } from 'lodash/fp'
+```
 
 ## Usage
 
@@ -49,23 +74,31 @@ store('numbers') // <---- array at numbers. Ready to read or write to it.
 #### Reading from and writing to the store
 
 mobx-store has a simple [lodash](https://github.com/lodash/lodash) powered API.
-Reading and writing is as simple as calling lodash methods on the store. To write, make sure the
-lodash method you're calling actually mutates the value you're giving it instead of returning a new one.
+
+* Reading from the store is as simple as passing lodash methods to the store function. In order to
+pass methods to the store without actually executing them you can import from `lodash/fp`.
+
+* Writing to the store is done by calling the regular array methods on the store object.
+
 
 ```js
+import { filter } from 'lodash/fp'
 import mobxstore from 'mobx-store'
+
 const store = mobxstore()
 
-store('numbers').value() // read current value of store -- []
-store('numbers').assign([1, 2, 3]) // write [1, 2, 3] to store
-store('numbers').filter((v) => v > 1) // read [2, 3] from store
+store('numbers') // read current value of store -- []
+store('numbers').replace([1, 2, 3]) // write [1, 2, 3] to store
+store('numbers', filter((v) => v > 1)) // read [2, 3] from store
 ```
 
-You can also chain methods to create more complex queries using `.chain`.
-Keep in mind that if you use chaining, you need to always call `.value()` at the end.
+You can also chain methods to create more complex queries by passing an array of functions to the
+store.
 
 ```js
+import { forEach, map, sortBy, take, toUpper } from 'lodash/fp'
 import mobxstore from 'mobx-store'
+
 const store = mobxstore()
 
 const users = [{
@@ -85,26 +118,31 @@ const users = [{
   name: 'e'
 }]
 
-// put users into store
-store('users').assign(users)
+// put users into the store
+store('users').replace(users)
 
 // Get the top 3 users by id
-const top3 = store('users').chain().sortBy('id').take(3)
+const top3 = store('users', [sortBy('id'), take(3)])
+```
 
+If you save the result of one of your queries to a variable,
+you can continue working with the variable by using the `chain` API
+
+```js
 // Get the names with the top 3 ids
-top3.map('name').value() // ['a', 'b', 'c']
+store.chain(top3, map('name')) // ['a', 'b', 'c']
 
 // Get the names of the top 3 ids capitalized
-top3.map((v) => _.toUpper(v.name)).value()
+store.chain(top3, map((v) => toUpper(v.name)))
 
 // Map doesn't mutate so value is the same
-top3.map('name').value() // ['a', 'b', 'c']
+store.chain(top3, map('name')) // ['a', 'b', 'c']
 
 // Mutate the names of the top 3 ids so they're capitalized
-top3.forEach((v) => v.name = _.toUpper(v.name)).value()
+store.chain(top3, forEach((v) => v.name = toUpper(v.name)))
 
 // Get the mutated names
-top3.map('name').value() // ['A', 'B', 'C']
+store.chain(top3, map('name')) // ['A', 'B', 'C']
 ```
 
 #### Reading from and writing to an external store
@@ -141,10 +179,10 @@ const store = mobxstore()
 store.states // <--- [{}]
 
 // Change the state of the store a lot
-store('time').assign([1, 2, 3])
-store('time').assign([4, 2, 3])
-store('space').assign([1, 3, 3])
-store('space').assign([1, 2, 3])
+store('time').replace([1, 2, 3])
+store('time').replace([4, 2, 3])
+store('travel').replace([1, 3, 3])
+store('travel').replace([1, 2, 3])
 
 store.states
 /*
@@ -153,9 +191,9 @@ store.states
   { time: [] },
   { time: [1, 2, 3] },
   { time: [4, 2, 3] },
-  { time: [4, 2, 3], space: [] },
-  { time: [4, 2, 3], space: [1, 3, 3] },
-  { time: [4, 2, 3], space: [1, 2, 3] }
+  { time: [4, 2, 3], travel: [] },
+  { time: [4, 2, 3], travel: [1, 3, 3] },
+  { time: [4, 2, 3], travel: [1, 2, 3] }
 ]
 */
 ```
@@ -174,7 +212,7 @@ import mobxstore from 'mobx-store'
 import { observer } from 'mobx-react'
 
 const store = mobxstore()
-store('objects').assign([{ name: 'test' }])
+store('objects').replace([{ name: 'test' }])
 
 const Objects = observer(function() {
   function addCard() {

@@ -1,3 +1,4 @@
 {
-  "presets": ["aria"]
+  "presets": ["aria"],
+  "plugins": ["lodash"]
 }

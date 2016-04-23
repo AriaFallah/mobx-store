@@ -1,12 +1,12 @@
 // @flow
 
-import _ from 'lodash'
-import { autorun, map, createTransformer } from 'mobx'
-import { createData, init } from './util'
+import { concat, fromPairs, map, flow } from 'lodash'
+import { autorun, map as obsMap, createTransformer } from 'mobx'
+import { addKey, init } from './util'
 import type { StoreOptions } from './types'
 
 const serializeDb = createTransformer(function(db) {
-  return _.fromPairs(_.map(db.entries(), (v) => [v[0], v[1].obs.slice()]))
+  return fromPairs(map(db.entries(), (v) => [v[0], v[1].slice()]))
 })
 
 export default function createDb(source: string, options: StoreOptions = {}): Function {
@@ -17,19 +17,27 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
   if (storage) {
     dbObject = init(source, storage.read, storage.write)
   } else {
-    dbObject = map({})
+    dbObject = obsMap({})
   }
 
   autorun(function() {
     states.push(serializeDb(dbObject))
   })
 
-  function db(key: string): Array<any> {
+  function db(key: string, funcs?: Array<Function> | Function): Object {
     // If the observable array doesn't exist create it
-    if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
-    return dbObject.get(key).__data
+    if (!dbObject.has(key)) dbObject.set(key, [])
+    if (funcs) {
+      return chain(addKey(dbObject.get(key).slice(), key), funcs)
+    }
+    return addKey(dbObject.get(key), key)
   }
   db.states = states
+  db.chain = chain
+
+  function chain(data: Object, funcs?: Array<Function> | Function): Object {
+    return flow(...concat([], funcs))(data)
+  }
 
   // Return the database object
   return db
