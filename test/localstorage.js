@@ -16,7 +16,7 @@ test('Local storage works', function(t) {
   t.deepEqual(JSON.parse(global.localStorage.store.x), { hello: 'world' })
 })
 
-test.only('Store reads from and writes to local storage', function(t) {
+test('Store reads from and writes to local storage', function(t) {
   const store = mobxstore(storage.read('db'))
   store.register(partial(storage.write, 'db', store.object))
 
