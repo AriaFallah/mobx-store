@@ -20,6 +20,7 @@ export default function createDb(intitialState: Object = {}): Function {
     }
     return dbObject.get(key)
   }
+  db.object = dbObject
   db.chain = chain
   db.register = register
   db.states = states
