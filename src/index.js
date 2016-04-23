@@ -1,8 +1,8 @@
 // @flow
 
-import { assign, concat, fromPairs, map, flow, partial, partialRight } from 'lodash'
+import { assign as lassign, concat, fromPairs, map, flow, partial, partialRight } from 'lodash'
 import { autorun, map as obsMap, createTransformer } from 'mobx'
-import { createData, init, update } from './util'
+import { addKey, createData, init, update } from './util'
 import type { StoreOptions } from './types'
 
 const serializeDb = createTransformer(function(db) {
@@ -24,19 +24,19 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
     states.push(serializeDb(dbObject))
   })
 
-  function db(key: string, funcs?: Array<Function> | Function): Array<any> {
+  function db(key: string, funcs?: Array<Function> | Function): Object {
     // If the observable array doesn't exist create it
     if (!dbObject.has(key)) dbObject.set(key, createData(dbObject, key, []))
     if (funcs) {
-      return chain(key, dbObject.get(key).__data, funcs)
+      return addKey(chain(dbObject.get(key).__data, funcs), key)
     }
-    return dbObject.get(key).obs.slice()
+    return addKey(dbObject.get(key).obs.slice(), key)
   }
   db.states = states
   db.chain = chain
 
-  function chain(key: string, data: Array<any>, funcs?: Array<Function> | Function) {
-    return flow(...concat([], funcs), partial(update, dbObject, key))(data)
+  function chain(data: Object, funcs?: Array<Function> | Function): Object {
+    return flow(...concat([], funcs), partial(update, dbObject, data.__key))(data)
   }
 
   // Return the database object
@@ -44,6 +44,6 @@ export default function createDb(source: string, options: StoreOptions = {}): Fu
 }
 
 // Use because lodash-fp doesn't allow mutation
-export function mutate(newValue: any): Function {
-  return partialRight(assign, newValue)
+export function assign(newValue: any): Function {
+  return partialRight(lassign, newValue)
 }

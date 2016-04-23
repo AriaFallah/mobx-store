@@ -3,10 +3,10 @@
 import { cloneDeep } from 'lodash'
 import { autorun, asReference } from 'mobx'
 
-export function createData(obj: Object, key: string, value: Array<any> = []) {
+export function createData(obj: Object, key: string, value: any = []) {
   return {
     obs: value, // The observable array
-    __data: asReference(value) // The underlying array
+    __data: asReference(addKey(value, key)) // The underlying array
   }
 }
 
@@ -23,4 +23,13 @@ export function update(obj: Object, key: string, value: any) {
     obj.get(key).obs.replace(cloneDeep(data))
   }
   return value
+}
+
+export function addKey(data: any, key: string): Object {
+  return Object.defineProperty(data, '__key', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: key
+  })
 }
