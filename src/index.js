@@ -30,7 +30,7 @@ export default function createDb(intitialState: Object = {}): Function {
   }
 
   function register(funcs?: Array<Function> | Function) {
-    return map(...concat([], funcs), (func) => autorun(() => func()))
+    return map(concat([], funcs), autorun)
   }
 
   // Return the database object
