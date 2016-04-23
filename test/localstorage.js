@@ -1,4 +1,5 @@
 import test from 'ava'
+import { partial } from 'lodash'
 import mobxstore from '../src'
 import storage from '../src/localstorage'
 
@@ -15,8 +16,9 @@ test('Local storage works', function(t) {
   t.deepEqual(JSON.parse(global.localStorage.store.x), { hello: 'world' })
 })
 
-test('Store reads from and writes to local storage', function(t) {
-  const store = mobxstore('db', { storage })
+test.only('Store reads from and writes to local storage', function(t) {
+  const store = mobxstore(storage.read('db'))
+  store.register(partial(storage.write, 'db', store.object))
 
   t.deepEqual(store('a').slice(), [1, 2, 3])
   store('a').replace([4, 5, 6])
