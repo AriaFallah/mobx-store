@@ -9,6 +9,7 @@ A data store with declarative querying, observable state, and time traveling cap
 * [Why](#why)
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
   * [React to state changes automatically](#react-to-state-changes-automatically)
+  * [Easy Undo and Redo](#easy-undo-and-redo)
 * [Installation](#installation)
 * [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
@@ -66,8 +67,9 @@ store('numbers').push(2)
 #### Easy Undo and Redo
 
 ```js
-store('test').push(1, 2, 3)
-store.undo() // value of users is [] again
+store('test').push(1, 2, 3) // value of test is [1, 2, 3]
+store.undo('test') // value of test is [] again
+store.redo('test') // value of test is [1, 2, 3] again
 ```
 
 ## Installation
@@ -126,7 +128,7 @@ const store = mobxstore({
 and to get access to specific key such as users you would just call
 
 ```js
-store('users') // <---- array at numbers. Ready to read or write to it.
+store('users') // <---- array at users. Ready to read or write to it.
 ```
 
 #### Reading from and writing to the store
