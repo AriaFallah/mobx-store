@@ -63,10 +63,11 @@ store('numbers').push(2)
 */
 ```
 
-#### Easy Undo
+#### Easy Undo and Redo
 
 ```js
-store('users')
+store('test').push(1, 2, 3)
+store.undo() // value of users is [] again
 ```
 
 ## Installation

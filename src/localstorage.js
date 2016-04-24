@@ -10,7 +10,7 @@ function read(source: string) {
 }
 
 function write(dest: string, obj: Object) {
-  return localStorage.setItem(dest, JSON.stringify(obj.toJs()))
+  return localStorage.setItem(dest, JSON.stringify(obj))
 }
 
 export default { read, write }
