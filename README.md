@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
-A data store with declarative querying, observable state, and time traveling capability.
+A data store with declarative querying, observable state, and easy undo/redo.
 
 * [Why](#why)
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
