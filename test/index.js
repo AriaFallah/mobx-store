@@ -1,6 +1,6 @@
 import test from 'ava'
 import mobxstore from '../src'
-import { autorun } from 'mobx'
+import { autorun, toJSON } from 'mobx'
 import { map, find, filter, toUpper, sortBy, take, pick } from 'lodash/fp'
 
 test('Store works when calling a single method', function(t) {
@@ -33,14 +33,18 @@ test('Store works when chaining', function(t) {
   t.is(i, 2)
 })
 
-test('Store time travel works', function(t) {
+test('Store undo/redo works', function(t) {
+  let i = 0
   const store = mobxstore()
+  t.throws(store.undo)
+  t.throws(store.redo)
 
   store('time').replace([1, 2, 3])
   store('time').replace([4, 2, 3])
   store('travel').replace([1, 3, 3])
   store('travel').replace([1, 2, 3])
-  t.deepEqual(store.states, [
+
+  t.deepEqual(store.state.past, [
     {},
     { time: [] },
     { time: [1, 2, 3] },
@@ -49,6 +53,18 @@ test('Store time travel works', function(t) {
     { time: [4, 2, 3], travel: [1, 3, 3] },
     { time: [4, 2, 3], travel: [1, 2, 3] }
   ])
+  t.deepEqual(toJSON(store.state.present), { time: [4, 2, 3], travel: [1, 2, 3] })
+
+  autorun(() => store('travel')[0] && i++)
+
+  store.undo()
+  t.deepEqual(toJSON(store.object), { time: [4, 2, 3], travel: [1, 3, 3] })
+  store.redo()
+  t.deepEqual(toJSON(store.object), { time: [4, 2, 3], travel: [1, 2, 3] })
+  t.is(i, 3)
+
+  store('time').replace([1, 2, 3])
+  t.throws(store.redo)
 })
 
 test('Examples in docs work', function(t) {

@@ -1,29 +1,58 @@
 // @flow
 
-import { concat, fromPairs, map, flow, partial } from 'lodash'
-import { autorun, map as obsMap, createTransformer } from 'mobx'
-
-const serializeDb = createTransformer(function(db) {
-  return fromPairs(map(db.entries(), (v) => [v[0], v[1].slice()]))
-})
+import { concat, flow, map, partial, forOwn } from 'lodash'
+import { autorun, map as obsMap, toJSON, transaction } from 'mobx'
 
 export default function createDb(intitialState: Object = {}): Function {
   const dbObject = obsMap(intitialState)
-  const states = []
+  const state = { past: [], present: dbObject, future: [] }
+  let shouldObserve = true
 
-  autorun(() => states.push(serializeDb(dbObject)))
+  autorun(function() {
+    if (shouldObserve) {
+      state.future = []
+      state.past.push(toJSON(state.present))
+    } else {
+      shouldObserve = true
+    }
+  })
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject.has(key)) dbObject.set(key, [])
+    if (!dbObject.has(key)) state.present.set(key, [])
     if (funcs) {
-      return chain(dbObject.get(key), funcs)
+      return chain(state.present.get(key), funcs)
     }
-    return dbObject.get(key)
+    return state.present.get(key)
   }
-  db.object = dbObject
   db.chain = chain
+  db.object = state.present
+  db.redo = redo
   db.schedule = schedule
-  db.states = states
+  db.state = state
+  db.undo = undo
+
+  function undo() {
+    if (state.past.length === 1) {
+      throw new Error('Can not call undo when you have not made any changes')
+    }
+
+    shouldObserve = false
+    state.future.push(toJSON(state.present))
+    transaction(function() {
+      state.past.pop() // hacky
+      forOwn(state.past.pop(), (value, key) => state.present.set(key, value))
+    })
+  }
+
+  function redo() {
+    if (state.future.length === 0) {
+      throw new Error('Can not call redo when you have not called undo')
+    }
+
+    shouldObserve = false
+    state.past.push(toJSON(state.present))
+    transaction(() => forOwn(state.future.shift(), (value, key) => state.present.set(key, value)))
+  }
 
   // Return the database object
   return db
