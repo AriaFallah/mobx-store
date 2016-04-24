@@ -52,7 +52,7 @@ store.schedule([log, store])
 // log is invoked on the push because the store mutated
 store('numbers').push(1)
 /*
-  logs nothing because 1 < 10
+  logs [] because 1 < 10
 */
 
 // log is invoked on the push because the store mutated
