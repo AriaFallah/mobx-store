@@ -25,14 +25,14 @@ export default function createDb(intitialState: Object = {}): Function {
   db.register = register
   db.states = states
 
-  function chain(data: Object, funcs: Array<Function> | Function): Object {
-    return flow(...concat([], funcs))(data.slice())
-  }
-
-  function register(...funcs: Array<Function>) {
-    return map(map(funcs, (args) => partial(...args)), autorun)
-  }
-
   // Return the database object
   return db
+}
+
+export function chain(data: Object, funcs: Array<Function> | Function): Object {
+  return flow(...concat([], funcs))(data.slice())
+}
+
+export function register(...funcs: Array<Function>) {
+  return map(map(funcs, (args) => partial(...args)), autorun)
 }
