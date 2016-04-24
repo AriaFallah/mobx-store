@@ -1,31 +1,37 @@
 // @flow
 
 import { concat, flow, map, partial, forOwn } from 'lodash'
-import { autorun, observable } from 'mobx'
+import { autorun, observable, observe } from 'mobx'
 
 export default function createDb(intitialState: Object = {}): Function {
-  const state = { past: [], present: observable(intitialState), future: [] }
+  const dbObject = forOwn(intitialState, (value, key) => intitialState[key] = createData(value))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!state.present[key]) state.present[key] = observable([])
+    if (!dbObject[key]) dbObject[key] = createData([])
     if (funcs) {
-      return chain(state.present[key], funcs)
+      return chain(dbObject[key], funcs)
     }
-    return state.present[key]
+    return dbObject[key]
   }
   db.chain = chain
-  db.object = state.present
+  db.object = dbObject
   db.redo = redo
   db.schedule = schedule
-  db.state = state
   db.undo = undo
 
-  function undo() {
-
+  function undo(key: string) {
+    const obs = dbObject[key]
+    obs.__past.pop() // hacky
+    obs.__shouldUpdate = false
+    obs.__future.push(obs.slice())
+    obs.replace(obs.__past.pop())
   }
 
-  function redo() {
-
+  function redo(key: string) {
+    const obs = dbObject[key]
+    obs.__shouldUpdate = false
+    obs.__past.push(obs.slice())
+    obs.replace(obs.__future.shift())
   }
 
   // Return the database object
@@ -38,4 +44,21 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
 
 export function schedule(...funcs: Array<Function>) {
   return map(map(funcs, (args) => partial(...args)), autorun)
+}
+
+function createData(data: any) {
+  const obs = Object.defineProperties(observable(data), {
+    __past: { value: [], writable: true },
+    __future: { value: [], writable: true },
+    __shouldUpdate: { value: true, writable: true }
+  })
+  observe(obs, function() {
+    if (obs.__shouldUpdate) {
+      obs.__future = []
+      obs.__past.push(obs.slice())
+    } else {
+      obs.__shouldUpdate = true
+    }
+  })
+  return obs
 }
