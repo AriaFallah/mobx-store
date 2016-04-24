@@ -10,10 +10,13 @@ A data store with declarative querying, observable state, and easy undo/redo.
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
   * [React to state changes automatically](#react-to-state-changes-automatically)
   * [Easy undo and redo](#easy-undo-and-redo)
+  * [Make your React components a function of the state in your store](#make-your-react-components-a-function-of-the-state-in-your-store)
 * [Installation](#installation)
+  * [Keeping your bundle small](#keeping-your-bundle-small)
 * [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
   * [Scheduling reactions to state change](#scheduling-reactions-to-state-change)
+  * [Undo and redo](#undo-and-redo)
   * [Using with react](#using-with-react)
 * [Credit](#credit)
 
@@ -34,6 +37,7 @@ store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('a
 #### React to state changes automatically
 ```js
 import mobxstore from 'mobx-store'
+import { filter } from 'lodash/fp'
 
 function log(store) {
   console.log(store('numbers', filter((x) => x > 10)))
@@ -66,11 +70,49 @@ store.undo('test') // value of test is [] again
 store.redo('test') // value of test is [1, 2, 3] again
 ```
 
+#### Make your React components a function of the state in your store
+
+One of the best things about the store is that you can use it with `mobx-react` because it's based
+upon mobx.
+
+For example to display some lists of objects, that automatically updates the view when you add
+another one.
+
+```js
+import React from 'react'
+import mobxstore from 'mobx-store'
+import { observer } from 'mobx-react'
+
+const store = mobxstore()
+
+const Objects = observer(function() {
+  function addCard() {
+    store('objects').push({ name: 'test' })
+  }
+  return (
+    <div>
+      <button onClick={addCard}>Add New Card</button>
+      <div>
+        {store('objects').map((o, n) =>
+          <div key={n}>
+            {o.name}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})
+
+export default Objects
+```
+
 ## Installation
 
 ```
 npm install --save mobx-store lodash
 ```
+
+#### Keeping your bundle small
 
 In order to prevent you from importing all of lodash into your frontend app, it's
 recommended that you install [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash)
@@ -174,7 +216,8 @@ store.chain(result, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.na
 
 #### Scheduling reactions to state change
 
-Reacting to state changes is done through the `schedule` API. You pass one to many arrays to the function. The first element of the array is your function, and the following elements are the arguments of your array.
+Reacting to state changes is done through the `schedule` API. You pass one to many arrays to the function.
+The first element of the array is your function, and the following elements are the arguments of your array.
 
 For example mobx-store comes with an adapter for reading and writing to localstorage.
 
@@ -191,40 +234,36 @@ store.schedule([localstorage.write, 'info', store.object])
 
 and you're done. Every change you make to this instance of mobx-store will persist to localstorage.
 
-#### Using with react
+#### Undo and redo
 
-One of the best things about the store is that you can use it with `mobx-react` because it's based upon mobx.
-
-For example to display some lists of objects, that automatically updates the view when you add
-another one.
+To use undo and redo pass the name of a key in your store as a parameter. Make sure not to undo if
+you haven't altered the state of your store, or if you have called it too many times already, and
+likewise make sure not to call redo if you haven't yet called undo.
 
 ```js
-import React from 'react'
 import mobxstore from 'mobx-store'
-import { observer } from 'mobx-react'
 
 const store = mobxstore()
 
-const Objects = observer(function() {
-  function addCard() {
-    store('objects').push({ name: 'test' })
-  }
-  return (
-    <div>
-      <button onClick={addCard}>Add New Card</button>
-      <div>
-        {store('objects').map((o, n) =>
-          <div key={n}>
-            {o.name}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-})
+store.undo('x') // error
 
-export default Objects
+store('x').push(1)
+store.undo('x') // undo push
+store.redo('x') // redo push
+
+store.redo('x') // error
 ```
+
+#### Using with React
+
+Read and apply the instructions you can find at [mobx-react](https://github.com/mobxjs/mobx-react)
+to make your components update when your store updates. The gist of it is that you just
+
+```js
+import { observer } from 'mobx-react'
+```
+
+and wrap the component that is using your store in it.
 
 ## Credit
 
