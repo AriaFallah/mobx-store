@@ -36,31 +36,26 @@ store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('a
 ```js
 import mobxstore from 'mobx-store'
 
-function logStore(storeObject) {
-  // toJs converts the store object to plain js
-  console.log(storeObject.toJs())
+function log(store) {
+  console.log(store('numbers', filter((x) => x > 10)))
 }
 
 // Create empty store
 const store = mobxstore()
 
-// Register logStore so that it happens every time the store mutates
-store.register([logStore, store.object])
+// Register log so that it happens every time the store mutates
+store.register([log, store])
 
-// logStore is invoked on the push because the store mutated
+// log is invoked on the push because the store mutated
 store('numbers').push(1)
 /*
-  {
-    numbers: [1]
-  }
+  logs nothing because 1 < 10
 */
 
-// logStore is invoked on the push because the store mutated
-store('numbers').push(2)
+// log is invoked on the push because the store mutated
+store('numbers').push(12)
 /*
-  {
-    numbers: [1, 2]
-  }
+  logs [12]
 */
 ```
 
