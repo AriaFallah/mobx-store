@@ -51,7 +51,7 @@ test('Store time travel works', function(t) {
   ]))
 })
 
-test.only('Examples in docs work', function(t) {
+test('Examples in docs work', function(t) {
   const users = [{
     id: 15,
     age: 20,
