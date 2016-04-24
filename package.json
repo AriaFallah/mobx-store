@@ -1,6 +1,6 @@
 {
   "name": "mobx-store",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
