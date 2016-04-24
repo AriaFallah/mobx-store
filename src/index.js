@@ -1,10 +1,10 @@
 // @flow
 
-import { concat, flow, map, partial, forOwn } from 'lodash'
+import { concat, flow, map, mapValues, partial } from 'lodash'
 import { autorun, observable, observe } from 'mobx'
 
 export default function createDb(intitialState: Object = {}): Function {
-  const dbObject = forOwn(intitialState, (value, key) => intitialState[key] = createData(value))
+  const dbObject = mapValues(intitialState, createData)
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
     if (!dbObject[key]) dbObject[key] = createData([])
