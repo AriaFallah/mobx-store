@@ -10,7 +10,7 @@ global.localStorage = {
 
 test('Store reads from and writes to local storage', function(t) {
   const store = mobxstore(storage.read('db'))
-  store.register([storage.write, 'db', store.object])
+  store.schedule([storage.write, 'db', store.object])
 
   t.deepEqual(store('a').slice(), [1, 2, 3])
   store('a').replace([4, 5, 6])

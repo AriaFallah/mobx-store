@@ -12,7 +12,7 @@ A data store with declarative querying, observable state, and time traveling cap
 * [Installation](#installation)
 * [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
-  * [Registering reactions to state change](#registering-reactions-to-state-change)
+  * [Scheduling reactions to state change](#scheduling-reactions-to-state-change)
   * [Accessing state history](#accessing-state-history)
   * [Using with react](#using-with-react)
 * [Credit](#credit)
@@ -64,6 +64,10 @@ store('numbers').push(2)
 ```
 
 #### Easy Undo
+
+```js
+store('users')
+```
 
 ## Installation
 
@@ -171,9 +175,9 @@ store.chain(result, [take(3), map('name')])
 store.chain(result, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.name))])
 ```
 
-#### Registering reactions to state change
+#### Scheduling reactions to state change
 
-Reacting to state changes is done through the `register` API. You pass one to many arrays to the function. The first element of the array is your function, and the following elements are the arguments of your array.
+Reacting to state changes is done through the `schedule` API. You pass one to many arrays to the function. The first element of the array is your function, and the following elements are the arguments of your array.
 
 For example mobx-store comes with an adapter for reading and writing to localstorage.
 
@@ -184,8 +188,8 @@ import localstorage from 'mobx-store/localstorage'
 // Create store initialized with value of localstorage at "info"
 const store = mobxstore(localstorage.read('info'))
 
-// Register a reaction to changes to the state of the store
-store.register([localstorage.write, 'info', store.object])
+// schedule a reaction to changes to the state of the store
+store.schedule([localstorage.write, 'info', store.object])
 ```
 
 and you're done. Every change you make to this instance of mobx-store will persist to localstorage.

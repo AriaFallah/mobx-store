@@ -22,7 +22,7 @@ export default function createDb(intitialState: Object = {}): Function {
   }
   db.object = dbObject
   db.chain = chain
-  db.register = register
+  db.schedule = schedule
   db.states = states
 
   // Return the database object
@@ -33,6 +33,6 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
   return flow(...concat([], funcs))(data.slice())
 }
 
-export function register(...funcs: Array<Function>) {
+export function schedule(...funcs: Array<Function>) {
   return map(map(funcs, (args) => partial(...args)), autorun)
 }
