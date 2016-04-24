@@ -4,10 +4,12 @@
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
-A observable data store with time traveling state, declarative querying, and reactions to state
+An observable data store with time traveling state, declarative querying, and reactions to state
 changes in 30 lines of code.
 
 * [Why](#why)
+  * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-SQL)
+  * [React to state changes automatically](#react-to-state-changes-automatically)
 * [Installation](#installation)
 * [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
@@ -18,7 +20,7 @@ changes in 30 lines of code.
 
 ## Why
 
-#### Query your data like it's SQL
+#### Query your data declaratively like it is SQL
 ```js
 import mobxstore from 'mobx-store'
 import { filter, map, pick, sortBy, take } from 'lodash/fp'
@@ -30,7 +32,7 @@ const store = mobxstore()
 store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('age'), take(1)])
 ```
 
-#### React to state changes
+#### React to state changes automatically
 ```js
 import mobxstore from 'mobx-store'
 
@@ -164,8 +166,8 @@ you can continue working with the variable by using the `chain` API
 // Take the top 3, and return an array of their names
 store.chain(result, [take(3), map('name')])
 
-// Filter again to get those with ids less than 100, take the top 3, and return an array of their names capitalized
-store.chain(result, [filter((x) x.id < 100), take(3), map((v) => toUpper(v.name))])
+// Filter again to get those with ids less than 100, take the top 2, and return an array of their names capitalized
+store.chain(result, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.name))])
 ```
 
 #### Registering reactions to state change
