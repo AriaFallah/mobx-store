@@ -8,7 +8,7 @@ An observable data store with time traveling state, declarative querying, and re
 changes in 30 lines of code.
 
 * [Why](#why)
-  * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-SQL)
+  * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
   * [React to state changes automatically](#react-to-state-changes-automatically)
 * [Installation](#installation)
 * [Tutorial](#tutorial)
