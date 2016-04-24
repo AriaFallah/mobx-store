@@ -21,6 +21,12 @@ export default function createDb(intitialState: Object = {}): Function {
 
   function undo(key: string) {
     const obs = dbObject[key]
+    if (obs === undefined) {
+      throw new Error('You cannot call undo on a nonexistent collection')
+    }
+    if (obs.__past.length === 0) {
+      throw new Error('You cannot call undo if you have not made any changes')
+    }
     obs.__past.pop() // hacky
     obs.__shouldUpdate = false
     obs.__future.push(obs.slice())
@@ -29,6 +35,12 @@ export default function createDb(intitialState: Object = {}): Function {
 
   function redo(key: string) {
     const obs = dbObject[key]
+    if (obs === undefined) {
+      throw new Error('You cannot call redo on a nonexistent collection')
+    }
+    if (obs.__future.length === 0) {
+      throw new Error('You cannot call redo without having called undo first')
+    }
     obs.__shouldUpdate = false
     obs.__past.push(obs.slice())
     obs.replace(obs.__future.shift())

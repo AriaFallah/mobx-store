@@ -1,6 +1,7 @@
 import test from 'ava'
 import mobxstore from '../src'
-import { autorun, toJSON } from 'mobx'
+import { autorun } from 'mobx'
+import { partial } from 'lodash'
 import { map, find, filter, toUpper, sortBy, take, pick } from 'lodash/fp'
 
 test('Store works when calling a single method', function(t) {
@@ -37,16 +38,24 @@ test('Store works when chaining', function(t) {
 test('Store undo/redo works', function(t) {
   let i = 0
   const store = mobxstore()
-
+  t.throws(partial(store.undo, 'time'))
+  t.throws(partial(store.redo, 'time'))
+  store('time')
+  t.throws(partial(store.undo, 'time'))
+  t.throws(partial(store.redo, 'time'))
   store('time').replace([1, 2, 3])
   store('time').replace([4, 2, 3])
+
   autorun(() => store('time')[0] && i++)
 
   store.undo('time')
-  t.deepEqual(toJSON(store.object), { time: [1, 2, 3] })
+  t.deepEqual(store('time').slice(), [1, 2, 3])
   store.redo('time')
-  t.deepEqual(toJSON(store.object), { time: [4, 2, 3] })
+  t.deepEqual(store('time').slice(), [4, 2, 3])
   t.is(i, 3)
+
+  store('time').replace([1, 2, 3])
+  t.throws(partial(store.redo, 'time'))
 })
 
 test('Examples in docs work', function(t) {
