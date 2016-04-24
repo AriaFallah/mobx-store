@@ -4,8 +4,7 @@
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
 
-An observable data store with time traveling state, declarative querying, and reactions to state
-changes in 30 lines of code.
+A data store with declarative querying, observable state, and time traveling capability.
 
 * [Why](#why)
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
@@ -56,13 +55,15 @@ store('numbers').push(1)
 */
 
 // logStore is invoked on the push because the store mutated
-store('numbers').push(1)
+store('numbers').push(2)
 /*
   {
     numbers: [1, 2]
   }
 */
 ```
+
+#### Easy Undo
 
 ## Installation
 

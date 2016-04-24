@@ -40,7 +40,7 @@ test('Store time travel works', function(t) {
   store('time').replace([4, 2, 3])
   store('travel').replace([1, 3, 3])
   store('travel').replace([1, 2, 3])
-  t.is(JSON.stringify(store.states.slice()), JSON.stringify([
+  t.deepEqual(store.states, [
     {},
     { time: [] },
     { time: [1, 2, 3] },
@@ -48,7 +48,7 @@ test('Store time travel works', function(t) {
     { time: [4, 2, 3], travel: [] },
     { time: [4, 2, 3], travel: [1, 3, 3] },
     { time: [4, 2, 3], travel: [1, 2, 3] }
-  ]))
+  ])
 })
 
 test('Examples in docs work', function(t) {
