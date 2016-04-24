@@ -219,7 +219,27 @@ store.chain(result, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.na
 Reacting to state changes is done through the `schedule` API. You pass one to many arrays to the function.
 The first element of the array is your function, and the following elements are the arguments of your array.
 
-For example mobx-store comes with an adapter for reading and writing to localstorage.
+For example mobx-store comes with an adapter for reading and writing to localstorage, which looks
+like this.
+
+```js
+function read(source) {
+  const data = localStorage.getItem(source)
+  if (data) {
+    return JSON.parse(data)
+  }
+  localStorage.setItem(source, '{}')
+  return {}
+}
+
+function write(dest, obj) {
+  return localStorage.setItem(dest, JSON.stringify(obj))
+}
+
+export default { read, write }
+```
+
+Using this we can schedule writing to the localstorage whenever the store mutates.
 
 ```js
 import mobxstore from 'mobx-store'
