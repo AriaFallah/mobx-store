@@ -1,6 +1,6 @@
 import test from 'ava'
 import mobxstore from '../src'
-import { autorun } from 'mobx'
+import { autorun, toJSON } from 'mobx'
 import { map, find, filter, toUpper, sortBy, take, pick } from 'lodash/fp'
 
 test('Store works when calling a single method', function(t) {
@@ -8,6 +8,7 @@ test('Store works when calling a single method', function(t) {
   const store = mobxstore()
 
   store('test').replace([1, 2, 3])
+  store('test').push(4)
   autorun(() => i += noop(store('test')[0]))
   store('test').replace([4, 5, 6])
   t.is(i, 2)
@@ -33,22 +34,19 @@ test('Store works when chaining', function(t) {
   t.is(i, 2)
 })
 
-test('Store time travel works', function(t) {
+test('Store undo/redo works', function(t) {
+  let i = 0
   const store = mobxstore()
 
   store('time').replace([1, 2, 3])
   store('time').replace([4, 2, 3])
-  store('travel').replace([1, 3, 3])
-  store('travel').replace([1, 2, 3])
-  t.deepEqual(store.states, [
-    {},
-    { time: [] },
-    { time: [1, 2, 3] },
-    { time: [4, 2, 3] },
-    { time: [4, 2, 3], travel: [] },
-    { time: [4, 2, 3], travel: [1, 3, 3] },
-    { time: [4, 2, 3], travel: [1, 2, 3] }
-  ])
+  autorun(() => store('time')[0] && i++)
+
+  store.undo('time')
+  t.deepEqual(toJSON(store.object), { time: [1, 2, 3] })
+  store.redo('time')
+  t.deepEqual(toJSON(store.object), { time: [4, 2, 3] })
+  t.is(i, 3)
 })
 
 test('Examples in docs work', function(t) {
