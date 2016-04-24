@@ -43,8 +43,8 @@ function log(store) {
 // Create empty store
 const store = mobxstore()
 
-// Register log so that it happens every time the store mutates
-store.register([log, store])
+// Schedule log so that it happens every time the store mutates
+store.schedule([log, store])
 
 // log is invoked on the push because the store mutated
 store('numbers').push(1)
