@@ -9,12 +9,11 @@ A data store with declarative querying, observable state, and time traveling cap
 * [Why](#why)
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
   * [React to state changes automatically](#react-to-state-changes-automatically)
-  * [Easy Undo and Redo](#easy-undo-and-redo)
+  * [Easy undo and redo](#easy-undo-and-redo)
 * [Installation](#installation)
 * [Tutorial](#tutorial)
   * [Reading from and writing to the store](#reading-from-and-writing-to-the-store)
   * [Scheduling reactions to state change](#scheduling-reactions-to-state-change)
-  * [Accessing state history](#accessing-state-history)
   * [Using with react](#using-with-react)
 * [Credit](#credit)
 
@@ -59,7 +58,7 @@ store('numbers').push(12)
 */
 ```
 
-#### Easy Undo and Redo
+#### Easy undo and redo
 
 ```js
 store('test').push(1, 2, 3) // value of test is [1, 2, 3]
@@ -191,39 +190,6 @@ store.schedule([localstorage.write, 'info', store.object])
 ```
 
 and you're done. Every change you make to this instance of mobx-store will persist to localstorage.
-
-#### Accessing state history
-
-Every time you mutate your store, the new state will be pushed into an array, allowing you to have
-a history of the changes you've made.
-
-The state is exposed as a property of your store called `states`.
-
-```js
-import mobxstore from 'mobx-store'
-const store = mobxstore()
-
-store.states // <--- [{}]
-
-// Change the state of the store a lot
-store('time').replace([1, 2, 3])
-store('time').replace([4, 2, 3])
-store('travel').replace([1, 3, 3])
-store('travel').replace([1, 2, 3])
-
-store.states
-/*
-[
-  {},
-  { time: [] },
-  { time: [1, 2, 3] },
-  { time: [4, 2, 3] },
-  { time: [4, 2, 3], travel: [] },
-  { time: [4, 2, 3], travel: [1, 3, 3] },
-  { time: [4, 2, 3], travel: [1, 2, 3] }
-]
-*/
-```
 
 #### Using with react
 
