@@ -13,8 +13,8 @@ test('Store reads from and writes to local storage', function(t) {
   store.schedule([storage.write, 'db', store.object])
 
   t.deepEqual(store('a').slice(), [1, 2, 3])
-  store('a').replace([4, 5, 6])
-  t.deepEqual(JSON.parse(global.localStorage.store.db).a, [4, 5, 6])
+  store('b').replace([4, 5, 6])
+  t.deepEqual(JSON.parse(global.localStorage.store.db).b, [4, 5, 6])
   storage.read('x')
   t.deepEqual(JSON.parse(global.localStorage.store.x), {})
 })

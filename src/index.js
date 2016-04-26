@@ -1,17 +1,17 @@
 // @flow
 
 import { concat, flow, map, mapValues, partial } from 'lodash'
-import { autorun, observable, observe } from 'mobx'
+import { autorun, map as mapObs, observable, observe } from 'mobx'
 
 export default function createDb(intitialState: Object = {}): Function {
-  const dbObject = mapValues(intitialState, createData)
+  const dbObject = mapObs(mapValues(intitialState, createData))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject[key]) dbObject[key] = createData([])
+    if (!dbObject.get(key)) dbObject.set(key, createData([]))
     if (funcs) {
-      return chain(dbObject[key], funcs)
+      return chain(dbObject.get(key), funcs)
     }
-    return dbObject[key]
+    return dbObject.get(key)
   }
   db.chain = chain
   db.object = dbObject
@@ -20,7 +20,7 @@ export default function createDb(intitialState: Object = {}): Function {
   db.undo = undo
 
   function undo(key: string) {
-    const obs = dbObject[key]
+    const obs = dbObject.get(key)
     if (obs === undefined) {
       throw new Error('You cannot call undo on a nonexistent collection')
     }
@@ -34,7 +34,7 @@ export default function createDb(intitialState: Object = {}): Function {
   }
 
   function redo(key: string) {
-    const obs = dbObject[key]
+    const obs = dbObject.get(key)
     if (obs === undefined) {
       throw new Error('You cannot call redo on a nonexistent collection')
     }
