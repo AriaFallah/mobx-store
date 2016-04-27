@@ -6,7 +6,8 @@ export type Change = {
   object: Object,
   index?: number,
   addedCount?: number,
-  removed?: Array<any>
+  removed?: Array<any>,
+  oldValue?: any
 }
 
 export type StoreConfig = {
