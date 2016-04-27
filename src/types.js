@@ -1,13 +1,16 @@
 // @flow
 
-export type Change = {
-  name?: number,
+export type UpdateChange = {
   type: string,
-  object: Object,
-  index?: number,
-  addedCount?: number,
-  removed?: Array<any>,
-  oldValue?: any
+  name: number,
+  oldValue: any
+}
+
+export type SpliceChange = {
+  type: string,
+  index: number,
+  addedCount: number,
+  removed: Array<any>,
 }
 
 export type StoreConfig = {

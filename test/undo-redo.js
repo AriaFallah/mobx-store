@@ -1,7 +1,8 @@
 import test from 'ava'
 import mobxstore from '../src'
 import { autorun } from 'mobx'
-import { partial, pull } from 'lodash'
+import { partial } from 'lodash'
+import { pull } from 'lodash/fp'
 
 test('Store undo/redo throws at proper times', function(t) {
   const store = mobxstore()
@@ -47,7 +48,7 @@ test('Store undo/redo works with pushing', function(t) {
 
 test('Store undo/redo works with removal', function(t) {
   const store = mobxstore({ test: [1, 2, 3, 4, 5] })
-  pull(store('test'), 1)
+  store('test').replace(pull(1)(store('test')))
   t.deepEqual(store('test').slice(), [2, 3, 4, 5])
   store.undo('test')
   t.deepEqual(store('test').slice(), [1, 2, 3, 4, 5])
@@ -59,7 +60,6 @@ test('Store undo/redo works when called in succession multiple times', function(
   store('test').replace([4, 2, 3])
   store('test').replace([5, 2, 3])
   store('test').replace([7, 2, 3])
-
   store.undo('test')
   store.undo('test')
   store.undo('test')
