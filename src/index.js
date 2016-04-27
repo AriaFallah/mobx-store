@@ -15,6 +15,8 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     }
     return dbObject.get(key)
   }
+  db.canRedo = (key: string) => dbObject.get(key).__future.length > 0
+  db.canUndo = (key: string) => dbObject.get(key).__past.length > 0
   db.chain = chain
   db.object = dbObject
   db.redo = redo
@@ -25,7 +27,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     const obs = dbObject.get(key)
     if (obs === undefined) {
       throw new Error('You cannot call undo on a nonexistent collection')
-    } else if (obs.__past.length === 0) {
+    } else if (!db.canUndo(key)) {
       throw new Error('You cannot call undo if you have not made any changes')
     }
     obs.__shouldUpdate = false
@@ -36,7 +38,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     const obs = dbObject.get(key)
     if (obs === undefined) {
       throw new Error('You cannot call redo on a nonexistent collection')
-    } else if (obs.__future.length === 0) {
+    } else if (!db.canRedo(key)) {
       throw new Error('You cannot call redo without having called undo first')
     }
     obs.__shouldUpdate = false
