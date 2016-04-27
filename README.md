@@ -11,6 +11,7 @@ A data store with declarative querying, observable state, and easy undo/redo.
   * [React to state changes automatically](#react-to-state-changes-automatically)
   * [Easy undo and redo](#easy-undo-and-redo)
   * [Make your React components a function of the state in your store](#make-your-react-components-a-function-of-the-state-in-your-store)
+* [Example](#example)
 * [Installation](#installation)
   * [Keeping your bundle small](#keeping-your-bundle-small)
 * [Tutorial](#tutorial)
@@ -105,6 +106,12 @@ const Objects = observer(function() {
 
 export default Objects
 ```
+
+## Example
+
+Here's a quick demo I put together to demonstrate the observable state and undo/redo features.
+
+![](http://i.imgur.com/cMCSeOh.gif)
 
 ## Installation
 
