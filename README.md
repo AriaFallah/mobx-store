@@ -228,7 +228,6 @@ function read(source) {
   if (data) {
     return JSON.parse(data)
   }
-  localStorage.setItem(source, '{}')
   return {}
 }
 
@@ -273,6 +272,28 @@ store.redo('x') // redo push
 
 store.redo('x') // error
 ```
+
+You can avoid errors by using the functions `canRedo` and `canUndo`
+
+```js
+if (store.canUndo('x')) {
+  store.undo('x')
+}
+if (store.canRedo('x')) {
+  store.redo('x')
+}
+```
+
+You can limit the history of the undo by passing `limitHistory` to the store config
+
+```js
+// Can only undo up to 10 times
+const store = mobxstore({}, { limitHistory: 10 })
+```
+
+Limiting history should be usually be unnecessary as mobx-store doesn't store the entire object in
+history like Redux does, which potentially can take up a lot of memory. Instead, it only stores
+information about what changed, and only creates the new state when you call undo or redo.
 
 #### Using with React
 
