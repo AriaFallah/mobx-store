@@ -1,16 +1,16 @@
 // @flow
 
 export type UpdateChange = {
-  type: string,
+  type: 'update',
   index: number,
   oldValue: any
 }
 
 export type SpliceChange = {
-  type: string,
+  type: 'splice',
   index: number,
   addedCount: number,
-  removed: Array<any>,
+  removed: Array<any>
 }
 
 export type StoreConfig = {

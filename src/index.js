@@ -72,7 +72,7 @@ function revertChange(obs: Array<any>, change: UpdateChange & SpliceChange): Upd
     type: 'splice',
     removed,
     index: change.index,
-    addedCount: change.addedCount
+    addedCount: change.removed.length
   }
 }
 

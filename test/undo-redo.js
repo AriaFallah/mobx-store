@@ -40,9 +40,10 @@ test('Store undo/redo works with direct mutation', function(t) {
 
 test('Store undo/redo works with replacing', function(t) {
   const store = mobxstore()
+  store('test').replace([1, 2, 3, 4])
   store('test').replace([1, 2, 3])
   store.undo('test')
-  t.deepEqual(store('test').slice(), [])
+  t.deepEqual(store('test').slice(), [1, 2, 3, 4])
   store.redo('test')
   t.deepEqual(store('test').slice(), [1, 2, 3])
 })
@@ -50,10 +51,11 @@ test('Store undo/redo works with replacing', function(t) {
 test('Store undo/redo works with pushing', function(t) {
   const store = mobxstore()
   store('test').push(1, 2, 3)
+  store('test').push(1, 2, 3)
   store.undo('test')
-  t.deepEqual(store('test').slice(), [])
-  store.redo('test')
   t.deepEqual(store('test').slice(), [1, 2, 3])
+  store.redo('test')
+  t.deepEqual(store('test').slice(), [1, 2, 3, 1, 2, 3])
 })
 
 test('Store undo/redo works with removal', function(t) {
@@ -62,6 +64,8 @@ test('Store undo/redo works with removal', function(t) {
   t.deepEqual(store('test').slice(), [2, 3, 4, 5])
   store.undo('test')
   t.deepEqual(store('test').slice(), [1, 2, 3, 4, 5])
+  store.redo('test')
+  t.deepEqual(store('test').slice(), [2, 3, 4, 5])
 })
 
 test('Store undo/redo works when called in succession multiple times', function(t) {
