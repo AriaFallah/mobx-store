@@ -5,7 +5,9 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "nyc ava -v",
+    "coverage": "nyc report --reporter=lcov && open coverage/lcov-report/index.html",
     "build": "gulp",
+    "prepublish": "npm run build",
     "lint": "eslint src"
   },
   "repository": {
