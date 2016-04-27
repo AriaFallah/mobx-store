@@ -28,6 +28,16 @@ test('Store undo/redo triggers autorun', function(t) {
   t.is(i, 3)
 })
 
+test('Store undo/redo works with direct mutation', function(t) {
+  const store = mobxstore()
+  store('test').push(1, 2, 3)
+  store('test')[0] = 5
+  store.undo('test')
+  t.deepEqual(store('test').slice(), [1, 2, 3])
+  store.redo('test')
+  t.deepEqual(store('test').slice(), [5, 2, 3])
+})
+
 test('Store undo/redo works with replacing', function(t) {
   const store = mobxstore()
   store('test').replace([1, 2, 3])
@@ -69,4 +79,14 @@ test('Store undo/redo works when called in succession multiple times', function(
   store.redo('test')
   store.redo('test')
   t.deepEqual(store('test').slice(), [7, 2, 3])
+})
+
+test('Store limits undo history', function(t) {
+  const store = mobxstore({}, { historyLimit: 1 })
+  store('x').push(1, 2, 3)
+  store('x').push(1, 2, 3)
+  store('x').push(1, 2, 3)
+  store('x').push(1, 2, 3)
+  store('x').push(1, 2, 3)
+  t.is(store('x').__past.length, 1)
 })

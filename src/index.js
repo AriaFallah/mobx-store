@@ -57,12 +57,12 @@ export function schedule(...funcs: Array<Function>) {
 
 function revertChange(obs: Array<any>, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
   if (change.type === 'update') {
-    const old = obs[change.name]
-    obs[change.name] = change.oldValue
+    const old = obs[change.index]
+    obs[change.index] = change.oldValue
     return {
       type: 'update',
       oldValue: old,
-      name: change.name
+      index: change.index
     }
   }
   const removed = obs.splice(change.index, change.addedCount, ...change.removed)
@@ -86,7 +86,6 @@ function createData(data: any, limit: number) {
 
       // Push everything except change.object since we don't need that
       obs.__past.push({
-        name: change.name,
         type: change.type,
         index: change.index,
         addedCount: change.addedCount,

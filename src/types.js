@@ -2,7 +2,7 @@
 
 export type UpdateChange = {
   type: string,
-  name: number,
+  index: number,
   oldValue: any
 }
 
