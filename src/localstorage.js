@@ -5,7 +5,6 @@ function read(source: string) {
   if (data) {
     return JSON.parse(data)
   }
-  localStorage.setItem(source, '{}')
   return {}
 }
 
