@@ -8,9 +8,9 @@ A data store with declarative querying, observable state, and easy undo/redo.
 
 * [Why](#why)
   * [Query your data declaratively like it is SQL](#query-your-data-declaratively-like-it-is-sql)
-  * [React to state changes automatically](#react-to-state-changes-automatically)
+  * [Schedule reactions to state changes](#schedule-reactions-to-state-changes)
   * [Easy undo and redo](#easy-undo-and-redo)
-  * [Make your React components a function of the state in your store](#make-your-react-components-a-function-of-the-state-in-your-store)
+  * [Easy interop with React](#easy-interop-with-react)
 * [Example](#example)
 * [Installation](#installation)
   * [Keeping your bundle small](#keeping-your-bundle-small)
@@ -35,7 +35,7 @@ const store = mobxstore()
 store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('age'), take(1)])
 ```
 
-#### React to state changes automatically
+#### Schedule reactions to state changes
 ```js
 import mobxstore from 'mobx-store'
 import { filter } from 'lodash/fp'
@@ -71,13 +71,11 @@ store.undo('test') // value of test is [] again
 store.redo('test') // value of test is [1, 2, 3] again
 ```
 
-#### Make your React components a function of the state in your store
+#### Easy interop with React
 
 One of the best things about the store is that you can use it with `mobx-react` because it's based
-upon mobx.
-
-For example to display some lists of objects, that automatically updates the view when you add
-another one.
+upon MobX. This also means that when you mutate your objects you don't need setState() calls because
+MobX will handle all the updating for you.
 
 ```js
 import React from 'react'
@@ -109,7 +107,9 @@ export default Objects
 
 ## Example
 
-Here's a quick demo I put together to demonstrate the observable state and undo/redo features.
+Here's a quick demo I put together to demonstrate the observable state and undo/redo features. It
+uses the code [you can find later in the README](#scheduling-reactions-to-state-change) to make
+changes to the store automatically persist to localstorage.
 
 ![](http://i.imgur.com/cMCSeOh.gif)
 
@@ -121,8 +121,8 @@ npm install --save mobx-store lodash
 
 #### Keeping your bundle small
 
-In order to prevent you from importing all of lodash into your frontend app, it's
-recommended that you install [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash)
+If you're concerned about the extra weight that lodash will add to your bundle you can install
+[babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash)
 
 ```
 npm install --save-dev babel-plugin-lodash
@@ -183,7 +183,6 @@ pass methods to the store without actually executing them you can import from `l
 
 * Writing to the store is done by calling the regular array methods as well the methods MobX exposes
 such as `replace` on the store object.
-
 
 ```js
 import { filter } from 'lodash/fp'
