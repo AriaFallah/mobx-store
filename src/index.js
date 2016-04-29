@@ -1,12 +1,12 @@
 // @flow
 
 import { concat, flow, map, mapValues, partial, partialRight } from 'lodash'
-import { autorun, map as mapObs, observable, observe } from 'mobx'
+import { autorun, map as obsMap, observable, observe } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
 export default function(intitialState: Object = {}, config: StoreConfig = { historyLimit: Infinity }): Function {
   const create = partialRight(createData, config.historyLimit)
-  const dbObject = mapObs(mapValues(intitialState, create))
+  const dbObject = obsMap(mapValues(intitialState, create))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
     if (!dbObject.get(key)) dbObject.set(key, create([]))
