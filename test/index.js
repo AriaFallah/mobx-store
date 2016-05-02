@@ -1,7 +1,21 @@
 import test from 'ava'
 import mobxstore from '../src'
 import { autorun } from 'mobx'
-import { map, find, filter, toUpper, sortBy, take, pick } from 'lodash/fp'
+import { map, find, filter, toUpper, sortBy, take, pick, valuesIn, mapValues } from 'lodash/fp'
+
+test('Can set keys of store', function(t) {
+  const store = mobxstore()
+  store.set('test', [1, 2])
+  t.deepEqual(store('test').slice(), [1, 2])
+})
+
+test('Store works with maps', function(t) {
+  const store = mobxstore({ test: { a: 1, b: 2, c: 3 } })
+  t.deepEqual(store('test').toJs(), { a: 1, b: 2, c: 3 })
+  t.deepEqual(store('test', valuesIn), [1, 2, 3])
+  store('test').merge(store('test', mapValues((x) => x * 2)))
+  t.deepEqual(store('test').toJs(), { a: 2, b: 4, c: 6 })
+})
 
 test('Store works when calling a single method', function(t) {
   let i = 0

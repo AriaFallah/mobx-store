@@ -1,19 +1,7 @@
 import test from 'ava'
 import mobxstore from '../src'
 import { autorun } from 'mobx'
-import { partial } from 'lodash'
 import { pull } from 'lodash/fp'
-
-test('Store undo/redo throws at proper times', function(t) {
-  const store = mobxstore({ test: [] })
-  t.throws(partial(store.undo, 'test'))
-  t.throws(partial(store.redo, 'test'))
-  store('test')
-  t.throws(partial(store.undo, 'test'))
-  t.throws(partial(store.redo, 'test'))
-  store('test').replace([1, 2, 3])
-  t.throws(partial(store.redo, 'test'))
-})
 
 test('Store undo/redo triggers autorun', function(t) {
   let i = 0
@@ -36,6 +24,15 @@ test('Store undo/redo works with direct mutation', function(t) {
   t.deepEqual(store('test').slice(), [1, 2, 3])
   store.redo('test')
   t.deepEqual(store('test').slice(), [5, 2, 3])
+})
+
+test('Store undo/redo works with maps', function(t) {
+  const store = mobxstore({ test: { a: 1, b: 2, c: 3 } })
+  store('test').set('a', 2)
+  store.undo('test')
+  t.deepEqual(store('test').toJs(), { a: 1, b: 2, c: 3 })
+  store.redo('test')
+  t.deepEqual(store('test').toJs(), { a: 2, b: 2, c: 3 })
 })
 
 test('Store undo/redo works with replacing', function(t) {
