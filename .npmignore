@@ -1,3 +1,8 @@
 test
 src
 !lib
+.babelrc
+.eslintrc.json
+.flowconfig
+circle.yml
+gulpfile.js
