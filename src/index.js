@@ -6,10 +6,10 @@ import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
 export default function(intitialState: Object = {}, config: StoreConfig = { historyLimit: Infinity }): Function {
   const create = partialRight(createData, config.historyLimit)
-  const dbObject = obsMap(mapValues(intitialState, create))
+  const dbObject = obsMap(mapValues(intitialState, (value) => create(value)))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject.get(key)) dbObject.set(key, create([]))
+    if (!dbObject.get(key)) throw new Error('Tried to retrieve undefined key')
     if (funcs) {
       return chain(dbObject.get(key), funcs)
     }
@@ -21,6 +21,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
   db.object = dbObject
   db.redo = redo
   db.schedule = schedule
+  db.set = (key: string, value: Array<any> | Object) => dbObject.set(key, create(value))
   db.undo = undo
 
   function undo(key: string) {
@@ -30,7 +31,9 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     } else if (!db.canUndo(key)) {
       throw new Error('You cannot call undo if you have not made any changes')
     }
-    obs.__shouldUpdate = false
+
+    // undo shouldn't trigger a push to history
+    obs.__trackChanges = false
     obs.__future.push(revertChange(obs, obs.__past.pop()))
   }
 
@@ -41,7 +44,9 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     } else if (!db.canRedo(key)) {
       throw new Error('You cannot call redo without having called undo first')
     }
-    obs.__shouldUpdate = false
+
+    // redo shouldn't trigger a push to history
+    obs.__trackChanges = false
     obs.__past.push(revertChange(obs, obs.__future.pop()))
   }
 
@@ -57,15 +62,24 @@ export function schedule(...funcs: Array<Function>) {
   return map(map(funcs, (args) => partial(...args)), autorun)
 }
 
-function revertChange(obs: Array<any>, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
+function revertChange(obs: Array<any> & obsMap, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
   if (change.type === 'update') {
-    const old = obs[change.index]
-    obs[change.index] = change.oldValue
-    return {
+    const newChange = {
       type: 'update',
-      oldValue: old,
-      index: change.index
+      name: change.name,
+      index: change.index,
+      oldValue: null
     }
+
+    if (change.index !== undefined) {
+      newChange.oldValue = obs[change.index]
+      obs[change.index] = change.oldValue
+    } else {
+      newChange.oldValue = obs.get(change.name)
+      obs.set(change.name, change.oldValue)
+    }
+
+    return newChange
   }
   const removed = obs.splice(change.index, change.addedCount, ...change.removed)
   return {
@@ -76,28 +90,29 @@ function revertChange(obs: Array<any>, change: UpdateChange & SpliceChange): Upd
   }
 }
 
-function createData(data: any, limit: number) {
-  const obs = Object.defineProperties(observable(data), {
+function createData(data: Object, limit: number) {
+  // Throw an error if the data isn't an array or object
+  if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
+
+  // Create the observable with history
+  const obs = Object.defineProperties(Array.isArray(data) ? observable(data) : obsMap(data), {
     __past: { value: [], writable: true },
     __future: { value: [], writable: true },
-    __shouldUpdate: { value: true, writable: true }
+    __trackChanges: { value: true, writable: true }
   })
-  observe(obs, function(change: UpdateChange & SpliceChange) {
-    if (obs.__shouldUpdate) {
-      obs.__future = []
 
-      // Push everything except change.object since we don't need that
-      obs.__past.push({
-        type: change.type,
-        index: change.index,
-        addedCount: change.addedCount,
-        removed: change.removed,
-        oldValue: change.oldValue
-      })
+  // Observe all changes to the object to create history for undo/redo
+  observe(obs, function(change: UpdateChange & SpliceChange) {
+    if (obs.__trackChanges) {
+      obs.__future = []
+      obs.__past.push(change)
+
+      // Start deleting from the past state if it exceeds the configured limit
       if (obs.__past.length > limit) obs.__past.shift()
     } else {
-      obs.__shouldUpdate = true
+      obs.__trackChanges = true
     }
   })
+
   return obs
 }
