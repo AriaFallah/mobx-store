@@ -29,8 +29,8 @@ A data store with declarative querying, observable state, and easy undo/redo.
 import mobxstore from 'mobx-store'
 import { filter, map, pick, sortBy, take } from 'lodash/fp'
 
-// Create empty store
-const store = mobxstore()
+// Create store
+const store = mobxstore({ users: [] })
 
 // SELECT name, age FROM users WHERE age > 18 ORDER BY age LIMIT 1
 store('users', [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('age'), take(1)])
@@ -46,7 +46,7 @@ function log(store) {
 }
 
 // Create empty store
-const store = mobxstore()
+const store = mobxstore({ numbers: [] })
 
 // Schedule log so that it happens every time the store mutates
 store.schedule([log, store])
@@ -83,7 +83,7 @@ import React from 'react'
 import mobxstore from 'mobx-store'
 import { observer } from 'mobx-react'
 
-const store = mobxstore()
+const store = mobxstore({ objects: [] })
 
 const Objects = observer(function() {
   function addCard() {
@@ -117,7 +117,7 @@ changes to the store automatically persist to localstorage.
 ## Installation
 
 ```
-npm install --save mobx-store lodash
+npm install --save mobx-store
 ```
 
 #### Keeping your bundle small
@@ -146,12 +146,13 @@ import { map, take, sortBy } from 'lodash/fp'
 
 ## Tutorial
 
-The store is structured as an object that holds an array for each key. For example, something like
+The store is structured as an object that holds either an array or object for each key.
+For example, something like
 
 ```js
 {
   numbers: [],
-  letters: []
+  ui: {}
 }
 ```
 
@@ -160,8 +161,9 @@ To create a store all you need to do is
 ```js
 import mobxstore from 'mobx-store'
 
-// Create empty store
+// Create empty store and initialize later
 const store = mobxstore()
+store.set('users', [])
 
 // Create store with initial state
 const store = mobxstore({
@@ -169,10 +171,18 @@ const store = mobxstore({
 })
 ```
 
-and to get access to specific key such as users you would just call
+and to get access to specific key such as users you would just call.
 
 ```js
-store('users') // <---- array at users. Ready to read or write to it.
+store('users')
+```
+
+With arrays you can manipulate them as if they are native arrays, but if you made an object you
+interact with it using the `get` and `set` methods
+
+```js
+store('ui').get('isVisible')
+store('ui').set('isVisible', true)
 ```
 
 #### Reading from and writing to the store
@@ -189,7 +199,7 @@ such as `replace` on the store object.
 import { filter } from 'lodash/fp'
 import mobxstore from 'mobx-store'
 
-const store = mobxstore()
+const store = mobxstore({ numbers: [] })
 
 store('numbers') // read current value of store -- []
 store('numbers').replace([1, 2, 3]) // write [1, 2, 3] to store
@@ -204,7 +214,7 @@ store.
 import { filter, map, sortBy, take, toUpper } from 'lodash/fp'
 import mobxstore from 'mobx-store'
 
-const store = mobxstore()
+const store = mobxstore({ users: [] })
 
 // Sort users by id and return an array of those with ids > 20
 const result = store('users', [sortBy('id'), filter((x) => x.id > 20)])
@@ -269,7 +279,7 @@ likewise make sure not to call redo if you haven't yet called undo.
 ```js
 import mobxstore from 'mobx-store'
 
-const store = mobxstore()
+const store = mobxstore({ x: [] })
 
 store.undo('x') // error
 
