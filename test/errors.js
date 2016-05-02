@@ -17,3 +17,7 @@ test('Throws for unset keys', function(t) {
   const store = mobxstore()
   t.throws(partial(store, 'test'))
 })
+
+test('Throws for invalid types', function(t) {
+  t.throws(partial(mobxstore, 's'))
+})
