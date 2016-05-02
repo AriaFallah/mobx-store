@@ -6,3 +6,5 @@ src
 .flowconfig
 circle.yml
 gulpfile.js
+coverage
+.nyc_output
