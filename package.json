@@ -23,18 +23,18 @@
   "homepage": "https://github.com/AriaFallah/mobx-store#readme",
   "devDependencies": {
     "ava": "^0.14.0",
-    "babel-plugin-lodash": "^2.3.0",
+    "babel-plugin-lodash": "^3.0.0",
     "babel-preset-aria": "^1.3.0",
     "babel-register": "^6.7.2",
     "coveralls": "^2.11.9",
-    "eslint": "^2.8.0",
+    "eslint": "^2.9.0",
     "eslint-config-aria": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
-    "nyc": "^6.4.0"
+    "nyc": "^6.4.2"
   },
   "dependencies": {
-    "lodash": "^4.11.1",
+    "lodash": "^4.11.2",
     "mobx": "^2.1.5"
   },
   "ava": {
