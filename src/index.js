@@ -15,16 +15,16 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     }
     return dbObject.get(key)
   }
-  db.canRedo = (key: string) => dbObject.get(key).__future.length > 0
-  db.canUndo = (key: string) => dbObject.get(key).__past.length > 0
+  db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
+  db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
   db.chain = chain
   db.object = dbObject
   db.redo = redo
   db.schedule = schedule
-  db.set = (key: string, value: Array<any> | Object) => dbObject.set(key, create(value))
+  db.set = (key: string, value: Array<any> | Object): void => dbObject.set(key, create(value))
   db.undo = undo
 
-  function undo(key: string) {
+  function undo(key: string): void {
     const obs = dbObject.get(key)
     if (!db.canUndo(key)) {
       throw new Error('You cannot call undo if you have not made any changes')
@@ -35,7 +35,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = { hist
     obs.__future.push(revertChange(obs, obs.__past.pop()))
   }
 
-  function redo(key: string) {
+  function redo(key: string): void {
     const obs = dbObject.get(key)
     if (!db.canRedo(key)) {
       throw new Error('You cannot call redo without having called undo first')
@@ -60,7 +60,7 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
   return flow(...concat([], funcs))(chainData)
 }
 
-export function schedule(...funcs: Array<Function>) {
+export function schedule(...funcs: Array<Function>): Array<Function> {
   return map(map(funcs, (args) => partial(...args)), autorun)
 }
 
@@ -92,7 +92,7 @@ function revertChange(obs: Array<any> & obsMap, change: UpdateChange & SpliceCha
   }
 }
 
-function createData(data: Object, limit: number) {
+function createData(data: Object, limit: number): Object {
   // Throw an error if the data isn't an array or object
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
 
