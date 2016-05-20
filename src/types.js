@@ -15,5 +15,6 @@ export type SpliceChange = {
 }
 
 export type StoreConfig = {
+  history?: boolean,
   historyLimit?: number
 }
