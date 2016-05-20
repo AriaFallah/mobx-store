@@ -91,3 +91,8 @@ test('Store limits undo history', function(t) {
   store('test').push(1, 2, 3)
   t.is(store('test').__past.length, 1)
 })
+
+test('Store should not have undo history', function(t) {
+  const store = mobxstore({ test: [] }, { history: false })
+  t.is(store('test').__past, undefined)
+})
