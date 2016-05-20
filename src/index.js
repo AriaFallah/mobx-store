@@ -4,8 +4,13 @@ import { concat, flow, map, mapValues, partial, partialRight } from 'lodash'
 import { autorun, map as obsMap, observable, observe } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
-export default function(intitialState: Object = {}, config: StoreConfig = { historyLimit: Infinity }): Function {
-  const create = partialRight(createData, config.historyLimit)
+const defaultConfig = {
+  historyLimit: Infinity,
+  noHistory: false,
+}
+
+export default function(intitialState: Object = {}, config: StoreConfig = defaultConfig): Function {
+  const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
   const dbObject = obsMap(mapValues(intitialState, (value) => create(value)))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
@@ -117,4 +122,10 @@ function createData(data: Object, limit: number): Object {
   })
 
   return obs
+}
+
+function createDataWithoutHistory(data) {
+  // Throw an error if the data isn't an array or object
+  if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
+  return Array.isArray(data) ? observable(data) : obsMap(data)
 }

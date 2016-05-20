@@ -20,4 +20,5 @@ test('Throws for unset keys', function(t) {
 
 test('Throws for invalid types', function(t) {
   t.throws(partial(mobxstore, 's'))
+  t.throws(partial(mobxstore, 's', { noHistory: true }))
 })
