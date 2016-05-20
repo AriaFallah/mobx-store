@@ -2,7 +2,7 @@ import test from 'ava'
 import fs from 'fs'
 import mobxstore from '../src'
 import local from '../src/localstorage'
-import filesync from '../src/filesync'
+import file from '../src/file'
 
 global.localStorage = {
   store: { db: '{"a": [1, 2, 3]}' },
@@ -20,14 +20,14 @@ test('Store reads from and writes to local storage', function(t) {
 })
 
 test('Store handles bad file inputs', function(t) {
-  t.deepEqual(filesync.read('./data/x.json'), {})
-  t.deepEqual(filesync.read('./data/empty.txt'), {})
+  t.deepEqual(file.read('./data/x.json'), {})
+  t.deepEqual(file.read('./data/empty.txt'), {})
 })
 
 test('Store reads from and writes to a file', function(t) {
   fs.writeFileSync('./data/data.json', '{ "hello": { "world": 1 } }')
-  const store = mobxstore({ ...filesync.read('./data/data.json'), b: [] })
-  store.schedule([filesync.write, './data/data.json', store.object])
+  const store = mobxstore({ ...file.read('./data/data.json'), b: [] })
+  store.schedule([file.write, './data/data.json', store.object])
   t.deepEqual(store('hello').get('world'), 1)
   store('hello').set('world', 2)
   store('b').replace([4, 5, 6])
@@ -37,5 +37,5 @@ test('Store reads from and writes to a file', function(t) {
     },
     b: [4, 5, 6]
   })
-  t.deepEqual(filesync.read('x'), {})
+  t.deepEqual(file.read('x'), {})
 })
