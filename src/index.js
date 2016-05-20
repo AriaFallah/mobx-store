@@ -5,12 +5,12 @@ import { autorun, map as obsMap, observable, observe } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
 const defaultConfig = {
-  history: true,
-  historyLimit: Infinity
+  historyLimit: Infinity,
+  noHistory: false,
 }
 
 export default function(intitialState: Object = {}, config: StoreConfig = defaultConfig): Function {
-  const create = history ? partialRight(createData, config.historyLimit) : createDataWithoutHistory
+  const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
   const dbObject = obsMap(mapValues(intitialState, (value) => create(value)))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {

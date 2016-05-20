@@ -3,3 +3,4 @@ npm-debug.log
 lib
 coverage
 .nyc_output
+test/data
