@@ -7,8 +7,9 @@
     "test": "nyc ava -v",
     "coverage": "nyc report --reporter=lcov && open coverage/lcov-report/index.html",
     "build": "gulp",
-    "prepublish": "npm run build",
-    "lint": "eslint src"
+    "prepublish": "publish-please guard && npm run build",
+    "lint": "eslint src",
+    "publish-please": "publish-please"
   },
   "repository": {
     "type": "git",
@@ -31,7 +32,8 @@
     "eslint-config-aria": "^2.2.2",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
-    "nyc": "^6.4.2"
+    "nyc": "^6.4.2",
+    "publish-please": "^2.1.1"
   },
   "dependencies": {
     "lodash": "^4.11.2",
