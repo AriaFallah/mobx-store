@@ -3,4 +3,4 @@ npm-debug.log
 lib
 coverage
 .nyc_output
-test/data
+test/data.json
