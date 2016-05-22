@@ -265,7 +265,7 @@ import localstorage from 'mobx-store/localstorage'
 const store = mobxstore(localstorage.read('info'))
 
 // schedule a reaction to changes to the state of the store
-store.schedule([localstorage.write, 'info', store.object])
+store.schedule([localstorage.write, 'info', store])
 ```
 
 and you're done. Every change you make to this instance of mobx-store will persist to localstorage.

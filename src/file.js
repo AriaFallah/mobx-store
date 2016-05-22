@@ -1,7 +1,6 @@
 // @flow
 
 import fs from 'fs'
-import { toJSON } from 'mobx'
 
 function read(source: string): Object {
   try {
@@ -11,8 +10,8 @@ function read(source: string): Object {
   }
 }
 
-function write(dest: string, obj: Object): void {
-  fs.writeFileSync(dest, JSON.stringify(toJSON(obj)))
+function write(dest: string, store: Object): void {
+  fs.writeFileSync(dest, JSON.stringify(store.contents()))
 }
 
 export default { read, write }

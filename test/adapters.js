@@ -12,7 +12,7 @@ global.localStorage = {
 
 test('Store reads from and writes to local storage', function(t) {
   const store = mobxstore({ ...local.read('db'), b: {} })
-  store.schedule([local.write, 'db', store.object])
+  store.schedule([local.write, 'db', store])
   t.deepEqual(store('a').slice(), [1, 2, 3])
   store('b').set('hello', 1)
   t.deepEqual(JSON.parse(global.localStorage.store.db).b, { hello: 1 })
@@ -27,7 +27,7 @@ test('Store handles bad file inputs', function(t) {
 test('Store reads from and writes to a file', function(t) {
   fs.writeFileSync('./data/data.json', '{ "hello": { "world": 1 } }')
   const store = mobxstore({ ...file.read('./data/data.json'), b: [] })
-  store.schedule([file.write, './data/data.json', store.object])
+  store.schedule([file.write, './data/data.json', store])
   t.deepEqual(store('hello').get('world'), 1)
   store('hello').set('world', 2)
   store('b').replace([4, 5, 6])

@@ -1,7 +1,7 @@
 // @flow
 
 import { concat, flow, map, mapValues, partial, partialRight } from 'lodash'
-import { autorun, map as obsMap, observable, observe } from 'mobx'
+import { autorun, map as obsMap, observable, observe, toJSON } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
 const defaultConfig = {
@@ -23,6 +23,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = defaul
   db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
   db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
   db.chain = chain
+  db.contents = (): Object => toJSON(dbObject)
   db.object = dbObject
   db.redo = redo
   db.schedule = schedule
