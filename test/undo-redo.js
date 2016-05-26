@@ -30,9 +30,9 @@ test('Store undo/redo works with maps', function(t) {
   const store = mobxstore({ test: { a: 1, b: 2, c: 3 } })
   store('test').set('a', 2)
   store.undo('test')
-  t.deepEqual(store('test').toJs(), { a: 1, b: 2, c: 3 })
+  t.deepEqual(store('test').toJS(), { a: 1, b: 2, c: 3 })
   store.redo('test')
-  t.deepEqual(store('test').toJs(), { a: 2, b: 2, c: 3 })
+  t.deepEqual(store('test').toJS(), { a: 2, b: 2, c: 3 })
 })
 
 test('Store undo/redo works with replacing', function(t) {

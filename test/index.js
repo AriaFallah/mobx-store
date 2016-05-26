@@ -11,10 +11,10 @@ test('Can set keys of store', function(t) {
 
 test('Store works with maps', function(t) {
   const store = mobxstore({ test: { a: 1, b: 2, c: 3 } })
-  t.deepEqual(store('test').toJs(), { a: 1, b: 2, c: 3 })
+  t.deepEqual(store('test').toJS(), { a: 1, b: 2, c: 3 })
   t.deepEqual(store('test', valuesIn), [1, 2, 3])
   store('test').merge(store('test', mapValues((x) => x * 2)))
-  t.deepEqual(store('test').toJs(), { a: 2, b: 4, c: 6 })
+  t.deepEqual(store('test').toJS(), { a: 2, b: 4, c: 6 })
 })
 
 test('Store works when calling a single method', function(t) {

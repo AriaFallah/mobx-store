@@ -1,7 +1,7 @@
 // @flow
 
 import { concat, flow, map, mapValues, partial, partialRight } from 'lodash'
-import { autorun, map as obsMap, observable, observe, toJSON } from 'mobx'
+import { action, autorun, asMap, observable, observe, toJS } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
 const defaultConfig = {
@@ -11,7 +11,7 @@ const defaultConfig = {
 
 export default function(intitialState: Object = {}, config: StoreConfig = defaultConfig): Function {
   const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
-  const dbObject = obsMap(mapValues(intitialState, (value) => create(value)))
+  const dbObject = observable(asMap(mapValues(intitialState, (value) => create(value))))
 
   function db(key: string, funcs?: Array<Function> | Function): Object {
     if (!dbObject.get(key)) throw new Error('Tried to retrieve undefined key')
@@ -22,13 +22,13 @@ export default function(intitialState: Object = {}, config: StoreConfig = defaul
   }
   db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
   db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
-  db.chain = chain
-  db.contents = (): Object => toJSON(dbObject)
-  db.object = dbObject
-  db.redo = redo
-  db.schedule = schedule
+  db.contents = (): Object => toJS(dbObject)
   db.set = (key: string, value: Array<any> | Object): void => dbObject.set(key, create(value))
-  db.undo = undo
+  db.redo = action(redo)
+  db.undo = action(undo)
+  db.chain = chain
+  db.object = dbObject
+  db.schedule = schedule
 
   function undo(key: string): void {
     const obs = dbObject.get(key)
@@ -61,7 +61,7 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
   if (data.constructor.name === 'ObservableArray') {
     chainData = data.slice()
   } else if (data.constructor.name === 'ObservableMap') {
-    chainData = data.toJs()
+    chainData = data.toJS()
   }
   return flow(...concat([], funcs))(chainData)
 }
@@ -70,7 +70,7 @@ export function schedule(...funcs: Array<Function>): Array<Function> {
   return map(map(funcs, (args) => partial(...args)), autorun)
 }
 
-function revertChange(obs: Array<any> & obsMap, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
+function revertChange(obs: Array<any> & observable, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
   if (change.type === 'update') {
     const newChange = {
       type: 'update',
@@ -103,13 +103,13 @@ function createData(data: Object, limit: number): Object {
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
 
   // Create the observable with history
-  const obs = Object.defineProperties(Array.isArray(data) ? observable(data) : obsMap(data), {
+  const obs = Object.defineProperties(observable(Array.isArray(data) ? data : asMap(data)), {
     __past: { value: [], writable: true },
     __future: { value: [], writable: true },
     __trackChanges: { value: true, writable: true }
   })
 
-  // Observe all changes to the object to create history for undo/redo
+  // Observe all changes to the observable to create history for undo/redo
   observe(obs, function(change: UpdateChange & SpliceChange) {
     if (obs.__trackChanges) {
       obs.__future = []
@@ -128,5 +128,5 @@ function createData(data: Object, limit: number): Object {
 function createDataWithoutHistory(data) {
   // Throw an error if the data isn't an array or object
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
-  return Array.isArray(data) ? observable(data) : obsMap(data)
+  return observable(Array.isArray(data) ? data : asMap(data))
 }
