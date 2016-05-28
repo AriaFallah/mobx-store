@@ -23,7 +23,7 @@ export default function(intitialState: Object = {}, config: StoreConfig = defaul
   db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
   db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
   db.contents = (): Object => toJS(dbObject)
-  db.set = (key: string, value: Array<any> | Object): void => dbObject.set(key, create(value))
+  db.set = action((key: string, value: Array<any> | Object): void => dbObject.set(key, create(value)))
   db.redo = action(redo)
   db.undo = action(undo)
   db.chain = chain
