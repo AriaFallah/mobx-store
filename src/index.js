@@ -9,7 +9,8 @@ const defaultConfig = {
   noHistory: false,
 }
 
-export default function(intitialState: Object = {}, config: StoreConfig = defaultConfig): Function {
+export default function(intitialState: Object = {}, userConfig?: StoreConfig = {}): Function {
+  const config = { ...defaultConfig, ...userConfig }
   const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
   const dbObject = observable(asMap(mapValues(intitialState, (value) => create(value))))
 
