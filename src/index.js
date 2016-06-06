@@ -14,13 +14,7 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
   const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
   const dbObject = observable(asMap(mapValues(intitialState, (value) => create(value))))
 
-  function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject.get(key)) throw new Error('Tried to retrieve undefined key')
-    if (funcs) {
-      return chain(dbObject.get(key), funcs)
-    }
-    return dbObject.get(key)
-  }
+  // Store API
   db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
   db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
   db.contents = (): Object => toJS(dbObject)
@@ -31,32 +25,44 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
   db.object = dbObject
   db.schedule = schedule
 
-  function undo(key: string): void {
-    const obs = dbObject.get(key)
-    if (!db.canUndo(key)) {
-      throw new Error('You cannot call undo if you have not made any changes')
+  // Query the DB, allowing the user to chain functions to query the store
+  function db(key: string, funcs?: Array<Function> | Function): Object {
+    if (!dbObject.get(key)) throw new Error('Tried to retrieve undefined key')
+    if (funcs) {
+      return chain(dbObject.get(key), funcs)
     }
-
-    // undo shouldn't trigger a push to history
-    obs.__trackChanges = false
-    obs.__future.push(revertChange(obs, obs.__past.pop()))
+    return dbObject.get(key)
   }
 
+  // Redo any undone changes to the given store
   function redo(key: string): void {
     const obs = dbObject.get(key)
     if (!db.canRedo(key)) {
       throw new Error('You cannot call redo without having called undo first')
     }
 
-    // redo shouldn't trigger a push to history
+    // Redo shouldn't trigger a push to history
     obs.__trackChanges = false
     obs.__past.push(revertChange(obs, obs.__future.pop()))
+  }
+
+  // Undo any changes the user has made to the current store
+  function undo(key: string): void {
+    const obs = dbObject.get(key)
+    if (!db.canUndo(key)) {
+      throw new Error('You cannot call undo if you have not made any changes')
+    }
+
+    // Undo shouldn't trigger a push to history
+    obs.__trackChanges = false
+    obs.__future.push(revertChange(obs, obs.__past.pop()))
   }
 
   // Return the database object
   return db
 }
 
+// Chain multiple lodash/fp functions together to allow declarative querying
 export function chain(data: Object, funcs: Array<Function> | Function): Object {
   let chainData = data
   if (data.constructor.name === 'ObservableArray') {
@@ -67,10 +73,12 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
   return flow(...concat([], funcs))(chainData)
 }
 
+// Automatically run functions with given args when store mutates
 export function schedule(...funcs: Array<Function>): Array<Function> {
   return map(map(funcs, (args) => partial(...args)), autorun)
 }
 
+// Take a change event and revert it
 function revertChange(obs: Array<any> & observable, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
   if (change.type === 'update') {
     const newChange = {
@@ -99,6 +107,7 @@ function revertChange(obs: Array<any> & observable, change: UpdateChange & Splic
   }
 }
 
+// Create a store entry such that the it has history that can be undo/redo
 function createData(data: Object, limit: number): Object {
   // Throw an error if the data isn't an array or object
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
@@ -126,6 +135,7 @@ function createData(data: Object, limit: number): Object {
   return obs
 }
 
+// Create a store entry
 function createDataWithoutHistory(data) {
   // Throw an error if the data isn't an array or object
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
