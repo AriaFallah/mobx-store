@@ -1,24 +1,25 @@
 // @flow
 
-import { concat, flow, map, mapValues, partial, partialRight } from 'lodash'
-import { action, autorun, asMap, observable, observe, toJS } from 'mobx'
+import { concat, flow, isObject, map, mapValues, partial, partialRight } from 'lodash'
+import { action, autorun, asMap, observable, toJS, spy } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
-const defaultConfig = {
-  historyLimit: Infinity,
-  noHistory: false,
-}
-
 export default function(intitialState: Object = {}, userConfig?: StoreConfig = {}): Function {
-  const config = { ...defaultConfig, ...userConfig }
-  const create = config.noHistory ? createDataWithoutHistory : partialRight(createData, config.historyLimit)
+  const config = {
+    historyLimit: Infinity,
+    noHistory: false,
+    ...userConfig
+  }
+  const create = config.noHistory
+    ? createDataWithoutHistory
+    : partialRight(createData, config.historyLimit)
   const dbObject = observable(asMap(mapValues(intitialState, (value) => create(value))))
 
   // Store API
   db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
   db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
   db.contents = (): Object => toJS(dbObject)
-  db.set = action((key: string, value: Array<any> | Object): void => dbObject.set(key, create(value)))
+  db.set = action((key: string, value: Object): void => dbObject.set(key, create(value)))
   db.redo = action(redo)
   db.undo = action(undo)
   db.chain = chain
@@ -43,7 +44,7 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
 
     // Redo shouldn't trigger a push to history
     obs.__trackChanges = false
-    obs.__past.push(revertChange(obs, obs.__future.pop()))
+    obs.__past.push(revertChange(obs.__future.pop()))
   }
 
   // Undo any changes the user has made to the current store
@@ -55,7 +56,7 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
 
     // Undo shouldn't trigger a push to history
     obs.__trackChanges = false
-    obs.__future.push(revertChange(obs, obs.__past.pop()))
+    obs.__future.push(revertChange(obs.__past.pop()))
   }
 
   // Return the database object
@@ -79,9 +80,11 @@ export function schedule(...funcs: Array<Function>): Array<Function> {
 }
 
 // Take a change event and revert it
-function revertChange(obs: Array<any> & observable, change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
+function revertChange(change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
+  const obs = change.object
   if (change.type === 'update') {
     const newChange = {
+      object: change.object,
       type: 'update',
       name: change.name,
       index: change.index,
@@ -100,6 +103,7 @@ function revertChange(obs: Array<any> & observable, change: UpdateChange & Splic
   }
   const removed = obs.splice(change.index, change.addedCount, ...change.removed)
   return {
+    object: change.object,
     type: 'splice',
     removed,
     index: change.index,
@@ -110,29 +114,17 @@ function revertChange(obs: Array<any> & observable, change: UpdateChange & Splic
 // Create a store entry such that the it has history that can be undo/redo
 function createData(data: Object, limit: number): Object {
   // Throw an error if the data isn't an array or object
-  if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
+  if (typeof data !== 'object') throw new Error('Top level elements of the store need to be arrays or objects')
 
   // Create the observable with history
-  const obs = Object.defineProperties(observable(Array.isArray(data) ? data : asMap(data)), {
+  const obs = observable(Array.isArray(data) ? data : asMap(data))
+  return Object.defineProperties(obs, {
     __past: { value: [], writable: true },
     __future: { value: [], writable: true },
-    __trackChanges: { value: true, writable: true }
+    __trackChanges: { value: true, writable: true },
+    __parent: { value: obs },
+    __limit: { value: limit }
   })
-
-  // Observe all changes to the observable to create history for undo/redo
-  observe(obs, function(change: UpdateChange & SpliceChange) {
-    if (obs.__trackChanges) {
-      obs.__future = []
-      obs.__past.push(change)
-
-      // Start deleting from the past state if it exceeds the configured limit
-      if (obs.__past.length > limit) obs.__past.shift()
-    } else {
-      obs.__trackChanges = true
-    }
-  })
-
-  return obs
 }
 
 // Create a store entry
@@ -141,3 +133,29 @@ function createDataWithoutHistory(data) {
   if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
   return observable(Array.isArray(data) ? data : asMap(data))
 }
+
+// Spy on the changes
+spy(function(change) {
+  if (!change.object || !change.object.__parent) return
+
+  const obs = change.object.__parent
+  if (obs.__trackChanges) {
+    obs.__future = []
+    obs.__past.push(change)
+    if (obs.__past.length > obs.__limit) obs.__past.shift()
+  } else {
+    obs.__trackChanges = true
+  }
+
+  switch (change.type) {
+  case 'add':
+    Object.defineProperty(change.newValue, '__parent', { value: obs })
+    break
+  case 'splice':
+    for (const elem of change.added) {
+      if (!isObject(elem) || elem.__parent) continue
+      Object.defineProperty(elem, '__parent', { value: obs })
+    } break
+  default: break
+  }
+})
