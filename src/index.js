@@ -1,6 +1,6 @@
 // @flow
 
-import { concat, flow, isObject, map, mapValues, partial, partialRight } from 'lodash'
+import { concat, flow, isObject, map, mapValues, partial, partialRight, values } from 'lodash'
 import { action, autorun, asMap, observable, toJS, spy } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
@@ -92,11 +92,17 @@ function revertChange(change: UpdateChange & SpliceChange): UpdateChange | Splic
     }
 
     if (change.index !== undefined) {
+      // Array
       newChange.oldValue = obs[change.index]
       obs[change.index] = change.oldValue
-    } else {
+    } else if (obs.constructor.name === 'ObservableMap') {
+      // MobX Map
       newChange.oldValue = obs.get(change.name)
       obs.set(change.name, change.oldValue)
+    } else {
+      // MobX Object
+      newChange.oldValue = obs[change.name]
+      obs[change.name] = change.oldValue
     }
 
     return newChange
@@ -138,6 +144,7 @@ function createDataWithoutHistory(data) {
 spy(function(change) {
   if (!change.object || !change.object.__parent) return
 
+  // Add the event to the history
   const obs = change.object.__parent
   if (obs.__trackChanges) {
     obs.__future = []
@@ -147,15 +154,24 @@ spy(function(change) {
     obs.__trackChanges = true
   }
 
+  // If there was data added, tag all the new data with the parent
   switch (change.type) {
   case 'add':
-    Object.defineProperty(change.newValue, '__parent', { value: obs })
+    connectParent(change.newValue, obs)
     break
   case 'splice':
-    for (const elem of change.added) {
-      if (!isObject(elem) || elem.__parent) continue
-      Object.defineProperty(elem, '__parent', { value: obs })
-    } break
+    connectParent(change.added, obs)
+    break
   default: break
   }
 })
+
+function connectParent(obj: Object, parent: Object) {
+  if (!isObject(obj)) return
+  if (obj.slice) {
+    for (const elem of obj) connectParent(elem, parent)
+  } else {
+    for (const value of values(obj)) connectParent(value, parent)
+  }
+  Object.defineProperty(obj, '__parent', { value: parent })
+}

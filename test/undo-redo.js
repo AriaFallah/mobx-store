@@ -96,3 +96,29 @@ test('Store should not have undo history', function(t) {
   const store = mobxstore({ test: [], test2: {} }, { noHistory: true })
   t.is(store('test').__past, undefined)
 })
+
+test('Store passes down the parent reference', function(t) {
+  const store = mobxstore({ test: [] })
+  store('test').push({})
+  t.is(store('test')[0].__parent, store('test'))
+})
+
+test('Store passes down the parent reference multiple levels', function(t) {
+  const store = mobxstore({ test: [] })
+  store('test').push({ a: { b: { c: {}, d: { e: [{}, {}, {}] } } } })
+  t.is(store('test')[0].__parent, store('test'))
+  t.is(store('test')[0].a.__parent, store('test'))
+  t.is(store('test')[0].a.b.c.__parent, store('test'))
+  t.is(store('test')[0].a.b.d.e[1].__parent, store('test'))
+})
+
+test('Store can deeply undo and redo history', function(t) {
+  const store = mobxstore({ test: [] })
+  store('test').push({ person: { name: 'joe', age: 15 } })
+  store('test')[0].person.name = 'ricky'
+  t.deepEqual(store('test').slice(), [{ person: { name: 'ricky', age: 15 } }])
+  store.undo('test')
+  t.deepEqual(store('test').slice(), [{ person: { name: 'joe', age: 15 } }])
+  store.redo('test')
+  t.deepEqual(store('test').slice(), [{ person: { name: 'ricky', age: 15 } }])
+})
