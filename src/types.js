@@ -1,6 +1,7 @@
 // @flow
 
 export type UpdateChange = {
+  object: Object,
   type: 'update',
   index: number,
   name: string,
@@ -8,6 +9,7 @@ export type UpdateChange = {
 }
 
 export type SpliceChange = {
+  object: Object,
   type: 'splice',
   index: number,
   addedCount: number,
