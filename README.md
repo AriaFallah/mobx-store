@@ -3,7 +3,6 @@
 [![CircleCI](https://img.shields.io/circleci/project/AriaFallah/mobx-store/master.svg?style=flat-square)](https://circleci.com/gh/AriaFallah/mobx-store)
 [![npm](https://img.shields.io/npm/v/mobx-store.svg?style=flat-square)](https://www.npmjs.com/package/mobx-store)
 [![Coveralls](https://img.shields.io/coveralls/AriaFallah/mobx-store.svg?style=flat-square)](https://coveralls.io/github/AriaFallah/mobx-store)
-[![bitHound Overall Score](https://www.bithound.io/github/AriaFallah/mobx-store/badges/score.svg)](https://www.bithound.io/github/AriaFallah/mobx-store)
 
 A data store with declarative querying, observable state, and easy undo/redo.
 
