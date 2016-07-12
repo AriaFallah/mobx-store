@@ -28,7 +28,7 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
 
   // Query the DB, allowing the user to chain functions to query the store
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject.get(key)) throw new Error('Tried to retrieve undefined key')
+    if (!dbObject.get(key)) throw new Error(`Tried to retrieve undefined key: ${key}`)
     if (funcs) {
       return chain(dbObject.get(key), funcs)
     }
