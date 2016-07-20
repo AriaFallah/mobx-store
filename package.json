@@ -1,6 +1,6 @@
 {
   "name": "mobx-store",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
@@ -36,6 +36,7 @@
     "publish-please": "^2.1.4"
   },
   "dependencies": {
+    "babel-runtime": "^6.9.2",
     "lodash": "^4.13.1",
     "mobx": "^2.3.5"
   },
