@@ -112,6 +112,14 @@ test('Store passes down the parent reference multiple levels', function(t) {
   t.is(store('test')[0].a.b.d.e[1].__parent, store('test'))
 })
 
+test('Store passes down the parent reference multiple levels on init', function(t) {
+  const store = mobxstore({ test: [{ a: { b: { c: {}, d: { e: [{}, {}, {}] } } } }] })
+  t.is(store('test')[0].__parent, store('test'))
+  t.is(store('test')[0].a.__parent, store('test'))
+  t.is(store('test')[0].a.b.c.__parent, store('test'))
+  t.is(store('test')[0].a.b.d.e[1].__parent, store('test'))
+})
+
 test('Store can deeply undo and redo history', function(t) {
   const store = mobxstore({ test: [] })
   store('test').push({ person: { name: 'joe', age: 15 } })

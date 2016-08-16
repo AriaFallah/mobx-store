@@ -1,6 +1,6 @@
 // @flow
 
-import { concat, flow, isObject, map, mapValues, partial, partialRight, values } from 'lodash'
+import { concat, flow, isObject, map, mapValues, partial, partialRight, values } from './lodash'
 import { action, autorun, asMap, observable, toJS, spy } from 'mobx'
 import type { StoreConfig, SpliceChange, UpdateChange } from './types'
 
@@ -124,11 +124,11 @@ function createData(data: Object, limit: number): Object {
 
   // Create the observable with history
   const obs = observable(Array.isArray(data) ? data : asMap(data))
+  connectParent(obs, obs)
   return Object.defineProperties(obs, {
     __past: { value: [], writable: true },
     __future: { value: [], writable: true },
     __trackChanges: { value: true, writable: true },
-    __parent: { value: obs },
     __limit: { value: limit }
   })
 }
@@ -172,6 +172,5 @@ function connectParent(obj: Object, parent: Object) {
     for (const elem of obj) connectParent(elem, parent)
   } else {
     for (const value of values(obj)) connectParent(value, parent)
-  }
-  Object.defineProperty(obj, '__parent', { value: parent })
+  } if (!obj.__parent) Object.defineProperty(obj, '__parent', { value: parent })
 }
