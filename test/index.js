@@ -81,6 +81,12 @@ test('Examples in docs work', function(t) {
   t.deepEqual(store.chain(result2, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.name))]), ['B', 'E'])
 })
 
+test('Can change contents of db', function(t) {
+  const store = mobxstore({ x: [1, 2, 3] })
+  store.object = store.fromObject({ y: [1, 2, 3] })
+  t.deepEqual(store.contents(), { y: [1, 2, 3] })
+})
+
 function noop() {
   return 1
 }

@@ -10,34 +10,35 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
     noHistory: false,
     ...userConfig
   }
+
   const create = config.noHistory
     ? createDataWithoutHistory
     : partialRight(createData, config.historyLimit)
-  const dbObject = observable(asMap(mapValues(intitialState, (value) => create(value))))
 
   // Store API
-  db.canRedo = (key: string): boolean => dbObject.get(key).__future.length > 0
-  db.canUndo = (key: string): boolean => dbObject.get(key).__past.length > 0
-  db.contents = (): Object => toJS(dbObject)
-  db.set = action((key: string, value: Object): void => dbObject.set(key, create(value)))
+  db.canRedo = (key: string): boolean => db.object.get(key).__future.length > 0
+  db.canUndo = (key: string): boolean => db.object.get(key).__past.length > 0
+  db.contents = (): Object => toJS(db.object)
+  db.set = action((key: string, value: Object): void => db.object.set(key, create(value)))
   db.redo = action(redo)
   db.undo = action(undo)
   db.chain = chain
-  db.object = dbObject
+  db.fromObject = fromObject
+  db.object = fromObject(intitialState)
   db.schedule = schedule
 
   // Query the DB, allowing the user to chain functions to query the store
   function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!dbObject.get(key)) throw new Error(`Tried to retrieve undefined key: ${key}`)
+    if (!db.object.get(key)) throw new Error(`Tried to retrieve undefined key: ${key}`)
     if (funcs) {
-      return chain(dbObject.get(key), funcs)
+      return chain(db.object.get(key), funcs)
     }
-    return dbObject.get(key)
+    return db.object.get(key)
   }
 
   // Redo any undone changes to the given store
   function redo(key: string): void {
-    const obs = dbObject.get(key)
+    const obs = db.object.get(key)
     if (!db.canRedo(key)) {
       throw new Error('You cannot call redo without having called undo first')
     }
@@ -49,7 +50,7 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
 
   // Undo any changes the user has made to the current store
   function undo(key: string): void {
-    const obs = dbObject.get(key)
+    const obs = db.object.get(key)
     if (!db.canUndo(key)) {
       throw new Error('You cannot call undo if you have not made any changes')
     }
@@ -57,6 +58,10 @@ export default function(intitialState: Object = {}, userConfig?: StoreConfig = {
     // Undo shouldn't trigger a push to history
     obs.__trackChanges = false
     obs.__future.push(revertChange(obs.__past.pop()))
+  }
+
+  function fromObject(obj: Object) {
+    return observable(asMap(mapValues(obj, (value) => create(value))))
   }
 
   // Return the database object
