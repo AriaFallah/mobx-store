@@ -8,22 +8,20 @@ import type { Change } from './types'
 let isUndoing = false
 let isRedoing = false
 
-// Actions is an object that holds a stack of batched changes for each action type
+// Actions is an object that holds a stack of batched changes for each action
 const actions = {}
 
 // Undo an action
 export function undo(actionName: string): void {
   isUndoing = true
-  const changes = actions[actionName].past.pop()
-  actions[actionName].future.unshift(changes.map(revertChange))
+  actions[actionName].future.unshift(actions[actionName].past.pop().map(revertChange).reverse())
   isUndoing = false
 }
 
 // Redo an action
 export function redo(actionName: string): void {
   isRedoing = true
-  const changes = actions[actionName].future.pop()
-  actions[actionName].past.unshift(changes.map(revertChange))
+  actions[actionName].past.unshift(actions[actionName].future.pop().map(revertChange).reverse())
   isRedoing = false
 }
 
@@ -48,7 +46,7 @@ export function watchHistory(): Function {
       actions[currentAction].past.unshift([])
     } else if (currentAction && depth >= currentDepth) {
       // Everything with > depth is part of the current action
-      if (change.type) actions[currentAction].past[0].push(change)
+      if (change.type) actions[currentAction].past[0].unshift(change)
     } else {
       // Reset
       currentDepth = 0

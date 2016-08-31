@@ -7,9 +7,11 @@ watchHistory()
 test('Undo/Redo works with arrays', function(t) {
   const obs = observable([1, 2, 3])
   action('Mutate Array', function(x) {
+    x.replace([1, 2, 3])
     x[0] = 4
     x[1] = 5
     x[2] = 6
+    x.replace([4, 5, 6])
   })(obs)
   t.deepEqual(obs.slice(), [4, 5, 6])
   undo('Mutate Array')
