@@ -1,22 +1,13 @@
 // @flow
 
-export type UpdateChange = {
-  object: Object,
-  type: 'update',
+export type Change = {
+  name?: string,
   index: number,
-  name: string,
-  oldValue: any
-}
-
-export type SpliceChange = {
+  oldValue?: any,
   object: Object,
-  type: 'splice',
-  index: number,
-  addedCount: number,
-  removed: Array<any>
-}
-
-export type StoreConfig = {
-  history?: boolean,
-  historyLimit?: number
+  addedCount?: number,
+  removed?: Array<any>,
+  spyReportEnd?: boolean,
+  spyReportStart?: boolean,
+  type: 'splice' | 'update'
 }

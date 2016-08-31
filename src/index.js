@@ -1,181 +1,61 @@
 // @flow
 
-import { concat, flow, isObject, map, mapValues, partial, partialRight, values } from './lodash'
-import { action, autorun, asMap, observable, toJS, spy } from 'mobx'
-import type { StoreConfig, SpliceChange, UpdateChange } from './types'
+import { spy, toJS } from 'mobx'
+import { concat, flow, revertChange } from './util'
+import type { Change } from './types'
 
-export default function(intitialState: Object = {}, userConfig?: StoreConfig = {}): Function {
-  const config = {
-    historyLimit: Infinity,
-    noHistory: false,
-    ...userConfig
-  }
+// Block off change monitoring while undoing and redoing
+let isUndoing = false
+let isRedoing = false
 
-  const create = config.noHistory
-    ? createDataWithoutHistory
-    : partialRight(createData, config.historyLimit)
+// Actions is an object that holds a stack of batched changes for each action
+const actions = {}
 
-  // Store API
-  db.canRedo = (key: string): boolean => db.object.get(key).__future.length > 0
-  db.canUndo = (key: string): boolean => db.object.get(key).__past.length > 0
-  db.contents = (): Object => toJS(db.object)
-  db.set = action((key: string, value: Object): void => db.object.set(key, create(value)))
-  db.redo = action(redo)
-  db.undo = action(undo)
-  db.chain = chain
-  db.fromObject = fromObject
-  db.object = fromObject(intitialState)
-  db.schedule = schedule
-
-  // Query the DB, allowing the user to chain functions to query the store
-  function db(key: string, funcs?: Array<Function> | Function): Object {
-    if (!db.object.get(key)) throw new Error(`Tried to retrieve undefined key: ${key}`)
-    if (funcs) {
-      return chain(db.object.get(key), funcs)
-    }
-    return db.object.get(key)
-  }
-
-  // Redo any undone changes to the given store
-  function redo(key: string): void {
-    const obs = db.object.get(key)
-    if (!db.canRedo(key)) {
-      throw new Error('You cannot call redo without having called undo first')
-    }
-
-    // Redo shouldn't trigger a push to history
-    obs.__trackChanges = false
-    obs.__past.push(revertChange(obs.__future.pop()))
-  }
-
-  // Undo any changes the user has made to the current store
-  function undo(key: string): void {
-    const obs = db.object.get(key)
-    if (!db.canUndo(key)) {
-      throw new Error('You cannot call undo if you have not made any changes')
-    }
-
-    // Undo shouldn't trigger a push to history
-    obs.__trackChanges = false
-    obs.__future.push(revertChange(obs.__past.pop()))
-  }
-
-  function fromObject(obj: Object) {
-    return observable(asMap(mapValues(obj, (value) => create(value))))
-  }
-
-  // Return the database object
-  return db
+// Undo an action
+export function undo(actionName: string): void {
+  isUndoing = true
+  actions[actionName].future.unshift(actions[actionName].past.pop().map(revertChange).reverse())
+  isUndoing = false
 }
 
-// Chain multiple lodash/fp functions together to allow declarative querying
-export function chain(data: Object, funcs: Array<Function> | Function): Object {
-  let chainData = data
-  if (data.constructor.name === 'ObservableArray') {
-    chainData = data.slice()
-  } else if (data.constructor.name === 'ObservableMap') {
-    chainData = data.toJS()
-  }
-  return flow(...concat([], funcs))(chainData)
+// Redo an action
+export function redo(actionName: string): void {
+  isRedoing = true
+  actions[actionName].past.unshift(actions[actionName].future.pop().map(revertChange).reverse())
+  isRedoing = false
 }
 
-// Automatically run functions with given args when store mutates
-export function schedule(...funcs: Array<Function>): Array<Function> {
-  return map(map(funcs, (args) => partial(...args)), autorun)
-}
+// Initialize change spying for undo/redo
+export function watchHistory(): Function {
+  let depth = 0
+  let currentDepth = 0
+  let currentAction = ''
 
-// Take a change event and revert it
-function revertChange(change: UpdateChange & SpliceChange): UpdateChange | SpliceChange {
-  const obs = change.object
-  if (change.type === 'update') {
-    const newChange = {
-      object: change.object,
-      type: 'update',
-      name: change.name,
-      index: change.index,
-      oldValue: null
-    }
+  return spy(function(change: Change) {
+    if (isUndoing || isRedoing) return
+    if (change.spyReportEnd) depth--
+    if (change.spyReportStart) depth++
 
-    if (change.index !== undefined) {
-      // Array
-      newChange.oldValue = obs[change.index]
-      obs[change.index] = change.oldValue
-    } else if (obs.constructor.name === 'ObservableMap') {
-      // MobX Map
-      newChange.oldValue = obs.get(change.name)
-      obs.set(change.name, change.oldValue)
+    if (!currentAction && change.type === 'action') {
+      // Save current action
+      currentDepth = depth
+      currentAction = change.name
+
+      // Initialize action
+      if (!actions[currentAction]) actions[currentAction] = { past: [], future: [] }
+      actions[currentAction].past.unshift([])
+    } else if (currentAction && depth >= currentDepth) {
+      // Everything with > depth is part of the current action
+      if (change.type) actions[currentAction].past[0].unshift(change)
     } else {
-      // MobX Object
-      newChange.oldValue = obs[change.name]
-      obs[change.name] = change.oldValue
+      // Reset
+      currentDepth = 0
+      currentAction = ''
     }
-
-    return newChange
-  }
-  const removed = obs.splice(change.index, change.addedCount, ...change.removed)
-  return {
-    object: change.object,
-    type: 'splice',
-    removed,
-    index: change.index,
-    addedCount: change.removed.length
-  }
-}
-
-// Create a store entry such that the it has history that can be undo/redo
-function createData(data: Object, limit: number): Object {
-  // Throw an error if the data isn't an array or object
-  if (typeof data !== 'object') throw new Error('Top level elements of the store need to be arrays or objects')
-
-  // Create the observable with history
-  const obs = observable(Array.isArray(data) ? data : asMap(data))
-  connectParent(obs, obs)
-  return Object.defineProperties(obs, {
-    __past: { value: [], writable: true },
-    __future: { value: [], writable: true },
-    __trackChanges: { value: true, writable: true },
-    __limit: { value: limit }
   })
 }
 
-// Create a store entry
-function createDataWithoutHistory(data) {
-  // Throw an error if the data isn't an array or object
-  if (typeof data !== 'object') throw new Error('Tried to create value with invalid type')
-  return observable(Array.isArray(data) ? data : asMap(data))
-}
-
-// Spy on the changes
-spy(function(change) {
-  if (!change.object || !change.object.__parent) return
-
-  // Add the event to the history
-  const obs = change.object.__parent
-  if (obs.__trackChanges) {
-    obs.__future = []
-    obs.__past.push(change)
-    if (obs.__past.length > obs.__limit) obs.__past.shift()
-  } else {
-    obs.__trackChanges = true
-  }
-
-  // If there was data added, tag all the new data with the parent
-  switch (change.type) {
-  case 'add':
-    connectParent(change.newValue, obs)
-    break
-  case 'splice':
-    connectParent(change.added, obs)
-    break
-  default: break
-  }
-})
-
-function connectParent(obj: Object, parent: Object) {
-  if (!isObject(obj)) return
-  if (obj.slice) {
-    for (const elem of obj) connectParent(elem, parent)
-  } else {
-    for (const value of values(obj)) connectParent(value, parent)
-  } if (!obj.__parent) Object.defineProperty(obj, '__parent', { value: parent })
+// Chain multiple pure functions together to allow declarative querying
+export function chain(data: Object, funcs: Array<Function> | Function): Object {
+  return flow(...concat([], funcs))(Array.isArray(data) ? data : toJS(data))
 }

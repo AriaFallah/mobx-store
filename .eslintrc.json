@@ -1,3 +1,7 @@
 {
-  "extends": "aria"
+  "extends": "aria",
+  "plugins": ["flowtype"],
+  "rules": {
+    "flowtype/define-flow-type": 1
+  }
 }
