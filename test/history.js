@@ -1,7 +1,8 @@
 import test from 'ava'
-import { action, observable, asMap } from 'mobx'
+import { action, observable, asMap, useStrict } from 'mobx'
 import { watchHistory, undo, redo } from '../src'
 
+useStrict(true)
 watchHistory()
 
 test('Undo/Redo works with arrays', function(t) {

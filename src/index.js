@@ -1,6 +1,6 @@
 // @flow
 
-import { spy, toJS } from 'mobx'
+import { action, spy, toJS } from 'mobx'
 import { concat, flow, revertChange } from './util'
 import type { Change } from './types'
 
@@ -11,19 +11,24 @@ let isRedoing = false
 // Actions is an object that holds a stack of batched changes for each action
 const actions = {}
 
+// Chain multiple pure functions together to allow declarative querying
+export function chain(data: Object, funcs: Array<Function> | Function): Object {
+  return flow(...concat([], funcs))(Array.isArray(data) ? data : toJS(data))
+}
+
 // Undo an action
-export function undo(actionName: string): void {
+export const undo = action('Undo', function undo(actionName: string): void {
   isUndoing = true
   actions[actionName].future.unshift(actions[actionName].past.pop().map(revertChange).reverse())
   isUndoing = false
-}
+})
 
 // Redo an action
-export function redo(actionName: string): void {
+export const redo = action('Redo', function redo(actionName: string): void {
   isRedoing = true
   actions[actionName].past.unshift(actions[actionName].future.pop().map(revertChange).reverse())
   isRedoing = false
-}
+})
 
 // Initialize change spying for undo/redo
 export function watchHistory(): Function {
@@ -36,12 +41,13 @@ export function watchHistory(): Function {
     if (change.spyReportEnd) depth--
     if (change.spyReportStart) depth++
 
+    // Ignore nested actions
     if (!currentAction && change.type === 'action') {
       // Save current action
       currentDepth = depth
       currentAction = change.name
 
-      // Initialize action
+      // Add it to the past
       if (!actions[currentAction]) actions[currentAction] = { past: [], future: [] }
       actions[currentAction].past.unshift([])
     } else if (currentAction && depth >= currentDepth) {
@@ -53,9 +59,4 @@ export function watchHistory(): Function {
       currentAction = ''
     }
   })
-}
-
-// Chain multiple pure functions together to allow declarative querying
-export function chain(data: Object, funcs: Array<Function> | Function): Object {
-  return flow(...concat([], funcs))(Array.isArray(data) ? data : toJS(data))
 }
