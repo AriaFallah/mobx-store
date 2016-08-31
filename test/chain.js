@@ -9,6 +9,11 @@ test('Chaining works with arrays', function(t) {
 })
 
 test('Chaining works with objects', function(t) {
+  const obs = observable({ a: 1, b: 2, c: 3 })
+  t.deepEqual(chain(obs, [values(), filter((x) => x > 1), take(1)]), [2])
+})
+
+test('Chaining works with maps', function(t) {
   const obs = observable(asMap({ a: 1, b: 2, c: 3 }))
   t.deepEqual(chain(obs, [values(), filter((x) => x > 1), take(1)]), [2])
 })
