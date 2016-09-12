@@ -1,24 +1,25 @@
-import test from 'ava'
+/* eslint-env jest */
+
 import { chain } from '../src'
 import { observable, asMap } from 'mobx'
 import { map, filter, toUpper, sortBy, take, pick, values } from 'lodash/fp'
 
-test('Chaining works with arrays', function(t) {
+test('Chaining works with arrays', function() {
   const obs = observable([1, 2, 3])
-  t.deepEqual(chain(obs, [filter((x) => x > 1), take(1)]), [2])
+  expect(chain(obs, [filter((x) => x > 1), take(1)])).toEqual([2])
 })
 
-test('Chaining works with objects', function(t) {
+test('Chaining works with objects', function() {
   const obs = observable({ a: 1, b: 2, c: 3 })
-  t.deepEqual(chain(obs, [values(), filter((x) => x > 1), take(1)]), [2])
+  expect(chain(obs, [values(), filter((x) => x > 1), take(1)])).toEqual([2])
 })
 
-test('Chaining works with maps', function(t) {
+test('Chaining works with maps', function() {
   const obs = observable(asMap({ a: 1, b: 2, c: 3 }))
-  t.deepEqual(chain(obs, [values(), filter((x) => x > 1), take(1)]), [2])
+  expect(chain(obs, [values(), filter((x) => x > 1), take(1)])).toEqual([2])
 })
 
-test('Advanced examples work', function(t) {
+test('Advanced examples work', function() {
   const users = observable(
     [{
       id: 15,
@@ -42,11 +43,23 @@ test('Advanced examples work', function(t) {
       name: 'e'
     }]
   )
-
-  const result = chain(users, [map(pick(['name', 'age'])), filter((x) => x.age > 18), sortBy('age'), take(1)])
-  t.deepEqual(result, [{ name: 'a', age: 20 }])
-
   const result2 = chain(users, [sortBy('id'), filter((x) => x.id > 20)])
-  t.deepEqual(chain(result2, [take(3), map('name')]), ['b', 'e', 'c'])
-  t.deepEqual(chain(result2, [filter((x) => x.id < 100), take(2), map((v) => toUpper(v.name))]), ['B', 'E'])
+
+  expect(chain(result2, [
+    take(3),
+    map('name')])
+  ).toEqual(['b', 'e', 'c'])
+
+  expect(chain(result2, [
+    filter((x) => x.id < 100),
+    take(2),
+    map((v) => toUpper(v.name))])
+  ).toEqual(['B', 'E'])
+
+  expect(chain(users, [
+    map(pick(['name', 'age'])),
+    filter((x) => x.age > 18),
+    sortBy('age'),
+    take(1)])
+  ).toEqual([{ name: 'a', age: 20 }])
 })

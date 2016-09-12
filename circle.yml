@@ -5,8 +5,8 @@ test:
     - npm test
     - npm run lint
   post:
-    - './node_modules/.bin/nyc report --reporter=text-lcov | ./node_modules/.bin/coveralls'
+    - 'cat ./coverage/lcov.info | ./node_modules/.bin/coveralls'
 
 machine:
   node:
-    version: 6.2.0
+    version: 6.5.0
