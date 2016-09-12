@@ -4,7 +4,7 @@
   "description": "An observable data store for usage with mobx",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "coverage": "jest --coverage && open coverage/lcov-report/index.html",
     "build": "gulp",
     "prepublish": "publish-please guard && npm run build",
