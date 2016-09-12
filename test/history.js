@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { watchHistory, undo, redo } from '../src'
-import { action, observable, asMap, useStrict } from 'mobx'
+import { action, extendObservable, observable, asMap, useStrict } from 'mobx'
 
 useStrict(true)
 watchHistory()
@@ -30,12 +30,13 @@ test('Undo/Redo works with objects', function() {
     x.a = 4
     x.b = 5
     x.c = 6
+    extendObservable(x, { d: 7 })
   })(obs)
-  expect(obs).toEqual({ a: 4, b: 5, c: 6 })
+  expect(obs).toEqual({ a: 4, b: 5, c: 6, d: 7 })
   undo('Mutate Object')
   expect(obs).toEqual({ a: 1, b: 2, c: 3 })
   redo('Mutate Object')
-  expect(obs).toEqual({ a: 4, b: 5, c: 6 })
+  expect(obs).toEqual({ a: 4, b: 5, c: 6, d: 7 })
   undo('Mutate Object')
   expect(obs).toEqual({ a: 1, b: 2, c: 3 })
 })
@@ -49,11 +50,11 @@ test('Undo/Redo works with maps', function() {
     x.set('d', 7)
     x.delete('d')
   })(obs)
-  expect(obs.toJS()).toEqual({ a: 4, b: 5, c: 6, d: 7 })
+  expect(obs.toJS()).toEqual({ a: 4, b: 5, c: 6 })
   undo('Mutate Map')
   expect(obs.toJS()).toEqual({ a: 1, b: 2, c: 3 })
   redo('Mutate Map')
-  expect(obs.toJS()).toEqual({ a: 4, b: 5, c: 6, d: 7 })
+  expect(obs.toJS()).toEqual({ a: 4, b: 5, c: 6 })
   undo('Mutate Map')
   expect(obs.toJS()).toEqual({ a: 1, b: 2, c: 3 })
 })

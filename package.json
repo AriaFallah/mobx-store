@@ -27,7 +27,7 @@
     "babel-preset-aria": "^1.3.0",
     "coveralls": "^2.11.12",
     "eslint": "^3.5.0",
-    "eslint-config-aria": "^4.0.2",
+    "eslint-config-aria": "^4.0.4",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "jest": "^15.1.1",
