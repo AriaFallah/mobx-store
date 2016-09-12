@@ -21,8 +21,9 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
 
 // Undo an action
 export const undo = action('undo', function undo(actionName: string): void {
+  if (actions[actionName].past.length === 0) return
   isUndoing = true
-  actions[actionName].future.unshift(
+  actions[actionName].future.push(
     actions[actionName].past
       .pop()
       .map(revertChange)
@@ -33,8 +34,9 @@ export const undo = action('undo', function undo(actionName: string): void {
 
 // Redo an action
 export const redo = action('redo', function redo(actionName: string): void {
+  if (actions[actionName].future.length === 0) return
   isRedoing = true
-  actions[actionName].past.unshift(
+  actions[actionName].past.push(
     actions[actionName].future
       .pop()
       .map(revertChange)
@@ -62,7 +64,7 @@ export function watchHistory(): Function {
 
       // Add it to the past
       if (!actions[currentAction]) actions[currentAction] = { past: [], future: [] }
-      actions[currentAction].past.unshift([])
+      actions[currentAction].past.push([])
     } else if (currentAction && depth >= currentDepth) {
       // Everything with > depth is part of the current action
       switch (change.type) {
@@ -70,7 +72,8 @@ export function watchHistory(): Function {
         case 'update':
         case 'splice':
         case 'delete':
-          actions[currentAction].past[0].unshift(change)
+          const past = actions[currentAction].past
+          past[past.length - 1].unshift(change)
           break
         default: break
       }

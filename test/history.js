@@ -58,3 +58,22 @@ test('Undo/Redo works with maps', function() {
   undo('Mutate Map')
   expect(obs.toJS()).toEqual({ a: 1, b: 2, c: 3 })
 })
+
+test('Calling undo/redo when nothing has changed does nothing', function() {
+  const obs = observable(asMap({ a: 1, b: 2, c: 3 }))
+  action('Mutate Map', function(x) {
+    x.set('a', 4)
+    x.set('b', 5)
+    x.set('c', 6)
+    x.set('d', 7)
+    x.delete('d')
+  })(obs)
+  redo('Mutate Map')
+  redo('Mutate Map')
+  redo('Mutate Map')
+  expect(obs.toJS()).toEqual({ a: 4, b: 5, c: 6 })
+  undo('Mutate Map')
+  undo('Mutate Map')
+  undo('Mutate Map')
+  expect(obs.toJS()).toEqual({ a: 1, b: 2, c: 3 })
+})
