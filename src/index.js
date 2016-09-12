@@ -1,8 +1,11 @@
 // @flow
 
-import { action, spy, toJS } from 'mobx'
-import { concat, flow, revertChange } from './util'
 import type { Change } from './types'
+
+import flow from 'lodash.flow'
+import concat from 'lodash.concat'
+import { revertChange } from './util'
+import { action, spy, toJS } from 'mobx'
 
 // Block off change monitoring while undoing and redoing
 let isUndoing = false
@@ -17,16 +20,26 @@ export function chain(data: Object, funcs: Array<Function> | Function): Object {
 }
 
 // Undo an action
-export const undo = action('Undo', function undo(actionName: string): void {
+export const undo = action('undo', function undo(actionName: string): void {
   isUndoing = true
-  actions[actionName].future.unshift(actions[actionName].past.pop().map(revertChange).reverse())
+  actions[actionName].future.unshift(
+    actions[actionName].past
+      .pop()
+      .map(revertChange)
+      .reverse()
+  )
   isUndoing = false
 })
 
 // Redo an action
-export const redo = action('Redo', function redo(actionName: string): void {
+export const redo = action('redo', function redo(actionName: string): void {
   isRedoing = true
-  actions[actionName].past.unshift(actions[actionName].future.pop().map(revertChange).reverse())
+  actions[actionName].past.unshift(
+    actions[actionName].future
+      .pop()
+      .map(revertChange)
+      .reverse()
+  )
   isRedoing = false
 })
 
@@ -52,7 +65,15 @@ export function watchHistory(): Function {
       actions[currentAction].past.unshift([])
     } else if (currentAction && depth >= currentDepth) {
       // Everything with > depth is part of the current action
-      if (change.type) actions[currentAction].past[0].unshift(change)
+      switch (change.type) {
+        case 'add':
+        case 'update':
+        case 'splice':
+        case 'delete':
+          actions[currentAction].past[0].unshift(change)
+          break
+        default: break
+      }
     } else {
       // Reset
       currentDepth = 0
