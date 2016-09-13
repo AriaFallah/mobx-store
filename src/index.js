@@ -74,6 +74,7 @@ export function watchHistory(): Function {
         case 'delete':
           const past = actions[currentAction].past
           past[past.length - 1].unshift(change)
+          actions[currentAction].future = []
           break
         default: break
       }
